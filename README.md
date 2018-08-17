@@ -57,7 +57,7 @@ Use the `prompt` key:
   },
 ```
 
-Every question should have a `title` and a `question`. I added `prompt` initally for messages like <i>Please make a selection</i> or <i>Select all that apply</i>. But those are just rules that can be applied automatically when a question asserts `'anchored':true` or `'type:checkbox'`. The former is separately communicated with a tooltip, the latter could be. So I'm thinking `prompt` is an optional way to say something else about a question, but we'll see how that plays out.
+Every question should have a `title` and a `question`. I added `prompt` initally for messages like <i>Please make a selection</i> or <i>Select all that apply</i>. But those are just rules that can be applied automatically when a question asserts `'anchored':true` or `'type':'checkbox'`. The former is separately communicated with a tooltip, the latter could be. So I'm thinking `prompt` is an optional way to say something else about a question, but we'll see how that plays out.
 
 
 ## Requiring a selection
