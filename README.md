@@ -58,6 +58,8 @@ Use the `anchored` key
 
 ### Display a question if a prior answer is one of a set of choices
 
+Q03 requires that the answer to Q02 was '1.02.01' or '1.02.02'
+
 ```
  'Q02' : {
     'type' : 'radio',
@@ -94,6 +96,8 @@ Use the `anchored` key
   ```
   
 ### Display a question if a prior answer contains a value
+
+Q03_01 requires that '1.03.07' is among the responses to Q03
   
   ```
     'Q03_01' : {
@@ -109,9 +113,36 @@ Use the `anchored` key
   ```
   
 ### Display a question if a prior answer exists
+
+Q09_02 requires that Q09_01 was answered
   
   ```
-    'Q09_02' : {
+  'Q08b' : {
+    'type' : 'checkbox',
+    'title' : 'Types of sources',
+    'question' : 'Which of the following are cited?',
+    'requires' : {
+      'target' : 'Q08a',
+      'equal' : '1.08a.01',
+    },    
+    'choices' : [
+      '1.08.02:Experts',
+      '1.08.03:Studies',
+      '1.08.04:Organizations',      
+    ],
+    'anchored' : false,
+  },  
+  'Q09_01' : {
+    'type' : 'highlight',
+    'title' : 'Expert sources',
+    'question' : 'Highlight expert source #1',
+    'anchored': true,
+    'requires' : {
+      'target': 'Q08b',
+      'contains' : '1.08.02',
+    },
+  },  
+  'Q09_02' : {
     'type' : 'highlight',
     'canskip' : true,
     'title' : 'Expert sources',
@@ -126,7 +157,9 @@ Use the `anchored` key
 
 ### Skip a question
 
-See `canskip` above. 
+Q09_01 will only have been answered if Experts was a choice earlier. In that case, Expert source #1 will have an answer, and Q09_02 will be displayed. There may or may not be additional expert sources. The `canskip` directive on Q09_02 (and following) surfaces a Skip button.
+
+This method requires enumerating a set of skippable questions, e.g. for Expert sources #2, #3, etc, which is tedious and should be optimized. 
 
 ## Initial demo
 
