@@ -688,16 +688,12 @@ function updatePriorQuestions() {
 
 // get base params for an annotation with selectors
 function getApiBaseParams() {
-  return {
-    group: hlib.getGroup(),
-    username: hlib.getUser(),
-    uri: appVars.URL,
-    exact: appVars.SELECTION,
-    prefix: appVars.PREFIX,
-    start: appVars.START,
-    end: appVars.END,
-    tags: [CredCoTag],
-  }
+  let params = getApiBaseParamsForPageNote()
+  params.exact = appVars.SELECTION
+  params.prefix = appVars.PREFIX
+  params.start = appVars.START
+  params.end = appVars.END
+  return params
 }
 
 // get base params for an annotation with no selectors
