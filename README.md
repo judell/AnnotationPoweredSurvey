@@ -169,7 +169,9 @@ http://jonudell.info/h/credco-01.mp4
 
 The `requires` syntax includes only the minimum set of patterns implied by the CredCo questionaire, in order to get the ball rolling on that front. It will definitely need to evolve/improve/simplify as other patterns appear.
 
-As is, question-writing is trickier and more verbose than it should be. If the basic approach pans out, it may be worth investing in a bit of tool support to validate the JSON, and maybe even provide a guided editing experience. But, first things first, let's make sure the basic approach enables annotators to process articles quickly, painlessly, and accurately, and to reliably deposit answers into the annotation layer for use both as interactive overlay and source of structured data. 
+The app remembers the selection sent from the host page. That's convenient for this survey, which includes a series of questions whose answers want to anchor to the article's title. But if you proceed to a new question that requires a different selection, there isn't yet a mechanism to enforce that.  
+
+As is, question-writing is trickier and more verbose than it should be. If the basic approach pans out, it may be worth investing in tool support to validate the JSON, and perhaps provide a guided question-writing experience. But first things first, let's prove that the basic approach enables annotators to process articles quickly, painlessly, and accurately, and to reliably deposit answers into the annotation layer for use both as interactive overlay and source of structured data. 
 
 For the CredCo app, we assume that annotators will be placed into individual Hypothesis groups, each of which will also have the project coordinator as a member. That means the coordinator can <a href="https://jonudell.info/h/facet/">export</a> data from each of the per-annotator groups. 
 
