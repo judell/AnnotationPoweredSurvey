@@ -20,7 +20,19 @@ The answer is freeform text
 
 The answer is a selection
 
-## Question Logic
+## Requiring a selection
+
+```
+ 'Q02' : {
+    'type' : 'radio',
+    'title' : 'Title Representativeness',
+
+    ... 
+    
+    'anchored' : true,
+  },
+```
+## Conditional display of questions
 
 ### Display a question if a prior answer is one of a set of choices
 
@@ -59,7 +71,7 @@ The answer is a selection
   },
   ```
   
-  ### Display a question if a prior answer contains a value
+### Display a question if a prior answer contains a value
   
   ```
     'Q03_01' : {
@@ -74,7 +86,7 @@ The answer is a selection
   },
   ```
   
-  ### Display a question if a prior answer exists
+### Display a question if a prior answer exists
   
   ```
     'Q09_02' : {
@@ -89,3 +101,9 @@ The answer is a selection
     },
   },
 ```
+
+### Skip a question
+
+See `canskip` above. 
+
+
