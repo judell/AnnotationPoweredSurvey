@@ -1,0 +1,98 @@
+<html>
+<head>
+<title>CredCo Content Annotation</title>
+<link rel="stylesheet" href="https://jonudell.info/hlib/hlib.css" />
+<script src="https://jonudell.info/hlib/hlib.bundle.js"></script>
+<script src="https://jonudell.info/hlib/showdown.js"></script>
+<script async src="index.js"></script>
+<style>
+@import url(https://fonts.googleapis.com/css?family=Raleway:500,400,300,800,700);  
+body {
+  font-family: Raleway;
+  word-break: break-word;
+  margin-top:.25in;
+  width: 65%;
+ }  
+ li {
+   margin-bottom: 1em;
+ }
+ div.inspector {
+  white-space: pre;
+  font-size: smaller;
+ }
+ svg {
+   width: 100%;
+   height: auto;
+ }
+ .clinGenSelection {
+   font-style: italic;
+ }
+ a {
+   text-decoration: underline;
+ }
+ .annotationTags a {
+   text-decoration: none;
+ }
+ #params {
+   position: fixed;
+   left: 70%;
+   right: 20px;
+   margin-left: 20px;
+   padding-left: 8px;
+   padding-right: 8px;
+   border-width: thin;
+   border-style: solid;
+   background-color: #faf9f9d6;
+ }
+ #formContainer {
+   margin-bottom: 20px;
+ }
+ #postAnswerButton {
+   display: none;
+ }
+ #skipButton {
+   display: none;
+ }
+ .question {
+   display: none
+}
+textarea {
+  width: 60%;
+  height: 6em;
+}
+.choice {
+  line-height: 1.5;
+}
+.buttons {
+  margin-top: 1em;
+}
+.asterisk {
+  font-size: larger;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<h1>CredCo Content Annotation</h1>  
+
+<div id="formContainer">
+  <div id="userContainer"></div>
+  <div id="tokenContainer"></div>
+  <div id="groupContainer"></div>
+</div>
+
+<div id="params"></div>
+
+<div id="questions"></div>
+
+<div class="buttons">
+  <button id="postAnswerButton" onclick="postAnswer()">post answer</button> 
+  <button id="skipButton" onclick="postSkippedAnswer()">skip</button>
+</div>
+
+<p id="finished"></p>
+
+</body>
+</html>
