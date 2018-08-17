@@ -187,7 +187,7 @@ http://jonudell.info/h/credco-01.mp4
 
 ## Notes
 
-The `requires` syntax includes only the minimum set of patterns implied by the CredCo questionaire, in order to get the ball rolling on that front. The syntax will definitely need to evolve/improve/simplify as other patterns appear.
+The `requires` syntax includes only the minimum set of patterns implied by the CredCo questionnaire. The syntax will definitely need to evolve/improve/simplify as other patterns emerge.
 
 The app remembers the selection sent from the host page. That's convenient for this survey, which includes a series of questions whose answers want to anchor to the article's title. But if you proceed to a new question that requires a different selection, there isn't yet a mechanism to enforce that.  
 
