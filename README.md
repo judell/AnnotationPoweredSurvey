@@ -40,6 +40,26 @@ The answer is freeform text
 
 The answer is a selection
 
+## Prompting
+
+Use the `prompt` key: 
+
+```
+  'Q02' : {
+    'type' : 'radio',
+    'title' : 'Title Representativeness',
+    'question' : 'Does the title of the article accurately reflect the content of the article?',
+    'prompt' : 'Please select the title',
+
+     ...
+     
+    'anchored' : true,
+  },
+```
+
+Every question should have a `title` and a `question`. I added `prompt` initally for messages like <i>Please make a selection</i> or <i>Select all that apply</i>. But those are just rules that can be applied automatically when a question asserts `'anchored':true` or `'type:checkbox'`. The former is separately communicated with a tooltip, the latter could be. So I'm thinking `prompt` is an optional way to say something else about a question, but we'll see how that plays out.
+
+
 ## Requiring a selection
 
 Use the `anchored` key
