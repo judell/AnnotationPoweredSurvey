@@ -159,7 +159,7 @@ Q09_02 requires that Q09_01 was answered
 
 Q09_01 will only have been answered if Experts was a choice earlier. In that case, Expert source #1 will have an answer, and Q09_02 will be displayed. There may or may not be additional expert sources. The `canskip` directive on Q09_02 (and following) surfaces a Skip button.
 
-This method requires enumerating a set of skippable questions, e.g. for Expert sources #2, #3, etc, which is tedious and should be optimized. 
+This method requires enumerating a set of skippable questions, e.g. for Expert sources #2, #3, etc. That's tedious and error-prone, and should probably be optimized away. Meanwhile, though it does have a possibly useful side effect: Skips are explicit user choices, recorded as such in the annotation layer. 
 
 ## Initial demo
 
