@@ -197,6 +197,8 @@ For the CredCo app, we assume that annotators will be placed into individual Hyp
 
 It's possible to undo an answer by deleting the corresponding annotation, but you need to find the most recent one, which might be in Hypothesis' Annotations or Page Notes tab depending on whether it's anchored or not. It should be straightforward to provide an Undo button that obviates the need to find the most recent annotation.
 
+If you close the app window during a survey, then relaunch from the bookmarlet, your prior context will be read from the annotation layer and restored. 
+
 Ideally this approach can integrate with other systems, like <a href="https://meedan.com/en/check/">Check</a> and  <a href="https://tag.works/">TagWorks</a>, in order bring their question-answering capabilities to granular, in-situ content. 
 
 
