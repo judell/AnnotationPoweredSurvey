@@ -18,7 +18,7 @@ javascript:(function(){var d=document; var s=d.createElement('script');s.setAttr
 
 GitHub's Markdown doesn't seem to let me form a drag-installable bookmarklet here in this page, but you can:
 
-1. Drag it from <a href="https://jonudell.net/h/#bookmarklets">here</a>
+1. Drag it from <a href="https://jonudell.info/h/#bookmarklets">here</a>
 
 2. Edit the above text into the URL field of an existing bookmarklet
 
