@@ -195,7 +195,7 @@ Question-writing is trickier and more verbose than it should be. If the basic ap
 
 For the CredCo app, we assume that annotators will be placed into individual Hypothesis groups, each of which will also have the project coordinator as a member. That means the coordinator can <a href="https://jonudell.info/h/facet/">export</a> data from each of the per-annotator groups. It also means that we'd need to copy the data to the Public layer if/when that's desired. 
 
-Ideally this approach would integrate with other systems, like <a href="https://meedan.com/en/check/">Check</a> and  <a href="https://tag.works/">TagWorks</a>, in order to leverage their question-answering capabilities while infusing them with annotation-powered contextualization. 
+Ideally this approach would integrate with other systems, like <a href="https://meedan.com/en/check/">Check</a> and  <a href="https://tag.works/">TagWorks</a>, in order bring their question-answering capabilities to granular, in-situ content. 
 
 
 
