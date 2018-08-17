@@ -1,4 +1,4 @@
-# Annotation Powered Survey
+# Annotation-powered Survey
 
 This is a minimal solution for the survey specified here: http://jonudell.info/h/CredCoContentAnnotation/pe_schema-credweb3.html
 
