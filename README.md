@@ -195,6 +195,8 @@ Question-writing is trickier and more verbose than it should be. If the basic ap
 
 For the CredCo app, we assume that annotators will be placed into individual Hypothesis groups, each of which will also have the project coordinator as a member. That means the coordinator can <a href="https://jonudell.info/h/facet/">export</a> data from each of the per-annotator groups. It also means that we'd need to copy the data to the Public layer if/when that's desired. 
 
+It's possible to undo an answer by deleting the corresponding annotation, but you need to find the most recent one, which might be in Hypothesis' Annotations or Page Notes tab depending on whether it's anchored or not. It should be straightforward to provide an Undo button that obviates the need to find the most recent annotation.
+
 Ideally this approach can integrate with other systems, like <a href="https://meedan.com/en/check/">Check</a> and  <a href="https://tag.works/">TagWorks</a>, in order bring their question-answering capabilities to granular, in-situ content. 
 
 
