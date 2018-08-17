@@ -165,6 +165,12 @@ This method requires enumerating a set of skippable questions, e.g. for Expert s
 
 http://jonudell.info/h/credco-01.mp4
 
+## Notes
+
+The `requires` syntax includes only the minimum set of patterns implied by the CredCo questionaire, in order to get the ball rolling on that front. It will definitely need to evolve/improve/simplify as other patterns appear.
+
+For the CredCo app, we assume that annotators will be placed into individual Hypothesis groups, each of which will also have the project coordinator as a member. That means the coordinator can <a href="https://jonudell.info/h/facet/">export</a> data from each of the per-annotator groups. 
+
 
 
 
