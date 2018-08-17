@@ -22,7 +22,9 @@ GitHub's Markdown doesn't seem to let me form a drag-installable bookmarklet her
 
 2. Edit the above text into the URL field of an existing bookmarklet
 
-When activated the app may trigger a popup blocker and require explicit consent.
+When activated from the bookmarklet, the app may trigger a popup blocker and require explicit consent. 
+
+If the host page enforces Content Security Policy, the bookmarklet won't work. That shouldn't be a problem for the sites we are targeting. Should it become a problem, the mechanism can be repackaged as a browser extension. 
 
 ## Question Types
 
