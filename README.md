@@ -2,6 +2,28 @@
 
 This is a minimal solution for the survey specified here: http://jonudell.info/h/CredCoContentAnnotation/pe_schema-credweb3.html
 
+## Installation
+
+The survey runs from a bookmarklet that refers to:
+
+- An index.html page (where the app runs)
+- A gather.js script, injected into the host page, that opens index.html in an app window and sends messages to it
+- An index.js script that runs the app window
+- StandaloneAnchoring.js, from https://github.com/judell/TextQuoteAndPosition (modules, also used by the Hypothesis client, to convert a selection in a web page into the selectors needed by an annotation that targets the selection)
+- hlib.bundle.js, from https://github.com/judell/hlib (convenience wrappers around the Hypothesis API)
+
+My current bookmarklet's text is:
+
+```
+javascript:(function(){var d=document; var s=d.createElement('script');s.setAttribute('src','https://jonudell.info/hlib/StandaloneAnchoring.js');d.head.appendChild(s); s=d.createElement('script');s.setAttribute('src','https://jonudell.info/hlib/hlib.bundle.js');d.head.appendChild(s); s=d.createElement('script');s.setAttribute('src','https://jonudell.info/h/CredCoContentAnnotation/gather.js');d.head.appendChild(s);})();
+```
+
+GitHub's Markdown doesn't seem to let me form a drag-installable bookmarklet here in this page, but you can:
+
+1. Drag it from <a href="https://jonudell.net/h/#bookmarklets">here</a>
+
+2. Edit the above text into the URL field of an existing bookmarklet
+
 ## Question Types
 
 ### Radio
