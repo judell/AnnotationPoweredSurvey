@@ -22,6 +22,8 @@ GitHub's Markdown doesn't seem to let me form a drag-installable bookmarklet her
 
 2. Edit the above text into the URL field of an existing bookmarklet
 
+When activated the app may trigger a popup blocker and require explicit consent.
+
 ## Question Types
 
 ### Radio
