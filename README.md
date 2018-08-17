@@ -191,9 +191,11 @@ The `requires` syntax includes only the minimum set of patterns implied by the C
 
 The app remembers the selection sent from the host page. That's convenient for this survey, which includes a series of questions whose answers want to anchor to the article's title. But if you proceed to a new question that requires a different selection, there isn't yet a mechanism to enforce that.  
 
-As is, question-writing is trickier and more verbose than it should be. If the basic approach pans out, it may be worth investing in tool support to validate the JSON, and perhaps provide a guided question-writing experience. But first things first, let's prove that the basic approach enables annotators to process articles quickly, painlessly, and accurately, and to reliably deposit answers into the annotation layer for use both as interactive overlay and source of structured data. 
+Question-writing is trickier and more verbose than it should be. If the basic approach pans out, it may be worth investing in tool support to validate the JSON, and perhaps provide a guided question-writing experience. But first things first, let's prove that the basic approach enables annotators to process articles quickly, painlessly, and accurately, and to reliably deposit answers into the annotation layer for use both as interactive overlay and source of structured data. 
 
 For the CredCo app, we assume that annotators will be placed into individual Hypothesis groups, each of which will also have the project coordinator as a member. That means the coordinator can <a href="https://jonudell.info/h/facet/">export</a> data from each of the per-annotator groups. It also means that we'd need to copy the data to the Public layer if/when that's desired. 
+
+Ideally this system could be mated to another system, like Check or tag.works, in order to leverage their question-answering logic while infusing it with annotation-powered contextualization. 
 
 
 
