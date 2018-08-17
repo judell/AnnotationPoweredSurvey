@@ -42,6 +42,8 @@ The answer is a selection
 
 ## Requiring a selection
 
+Use the `anchored` key
+
 ```
  'Q02' : {
     'type' : 'radio',
@@ -125,5 +127,11 @@ The answer is a selection
 ### Skip a question
 
 See `canskip` above. 
+
+## Initial demo
+
+http://jonudell.info/h/credco-01.mp4
+
+
 
 
