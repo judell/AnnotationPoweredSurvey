@@ -14,7 +14,7 @@ The survey runs from a bookmarklet that refers to:
 
 My current bookmarklet's text is:
 
-javascript:(function(){var d=document; var s=d.createElement('script');s.setAttribute('src','https://jonudell.info/hlib/StandaloneAnchoring.js');d.head.appendChild(s); s=d.createElement('script');s.setAttribute('src','https://jonudell.info/hlib/hlib.bundle.js');d.head.appendChild(s); s=d.createElement('script');s.setAttribute('src','https://jonudell.info/h/CredCoContentAnnotation/gather.js');d.head.appendChild(s);})();
+> javascript:(function(){var d=document; var s=d.createElement('script');s.setAttribute('src','https://jonudell.info/hlib/StandaloneAnchoring.js');d.head.appendChild(s); s=d.createElement('script');s.setAttribute('src','https://jonudell.info/hlib/hlib.bundle.js');d.head.appendChild(s); s=d.createElement('script');s.setAttribute('src','https://jonudell.info/h/CredCoContentAnnotation/gather.js');d.head.appendChild(s);})();
 
 GitHub's Markdown doesn't seem to let me form a drag-installable bookmarklet here in this page, but you can:
 
