@@ -7,8 +7,9 @@ This is a minimal solution for the survey specified here: http://jonudell.info/h
 The survey runs from a bookmarklet that refers to:
 
 - An `index.html` page (where the app runs)
-- A `gather.js` script, injected into the host page, that opens `index.html` in an app window, and sends selections to it
-- An `index.js` script that runs the app window
+- `gather.js`, injected into the host page, that opens `index.html` in an app window, and sends selections to it
+- `index.js` that runs the app window
+- `questions.js` that defines the questions
 - `StandaloneAnchoring.js`, from https://github.com/judell/TextQuoteAndPosition (modules, also used by the Hypothesis client, to convert a selection in a web page into the selectors needed by an annotation that targets the selection)
 - `hlib.bundle.js`, from https://github.com/judell/hlib (convenience wrappers around the Hypothesis API)
 
