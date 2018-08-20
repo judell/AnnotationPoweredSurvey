@@ -185,6 +185,10 @@ Q09_01 will only have been answered if Experts was a choice earlier. In that cas
 
 This method requires enumerating a set of skippable questions, e.g. for Expert sources #2, #3, etc. That's tedious and error-prone, and should probably be optimized away. Meanwhile, though it does have a possibly useful side effect: Skips are explicit user choices, recorded as such in the annotation layer. 
 
+## Exporting the data
+
+Visit https://jonudell.info/h/facet/, select the appropriate group, click CSV.
+
 ## Notes
 
 The `requires` syntax includes only the minimum set of patterns implied by the CredCo questionnaire. The syntax will definitely need to evolve/improve/simplify as other patterns emerge.
