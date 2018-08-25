@@ -114,15 +114,6 @@ div.message {
 
 <script type="module">  
 
-function sleep(ms) {
-    return new Promise( resolve => { setTimeout(resolve, ms) } )
-}
-
-async function waitSeconds(seconds) {
-  await sleep(seconds * 1000)
-  console.log('done waiting')
-}
-
 function appendBody(element) {
   document.body.appendChild(element)
 }
