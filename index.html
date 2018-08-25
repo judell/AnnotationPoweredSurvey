@@ -54,6 +54,9 @@ body {
  #skipButton {
    display: none;
  }
+ #endRepeatButton {
+   display: none;
+ }
  .question {
    display: none
 }
@@ -90,7 +93,7 @@ textarea {
 
 <div class="buttons">
   <button id="postAnswerButton" onclick="postAnswer()">post answer</button> 
-  <button id="skipButton" onclick="postSkippedAnswer()">skip</button>
+  <button id="endRepeatButton" onclick="endRepeat()">continue</button>
 </div>
 
 <p id="finished"></p>

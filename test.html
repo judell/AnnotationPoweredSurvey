@@ -1,0 +1,418 @@
+<html>
+<head>
+<title>AnnotationSurvey Content Annotation</title>
+<link rel="stylesheet" href="https://jonudell.info/hlib/hlib.css" />
+<script src="https://jonudell.info/hlib/hlib.bundle.js"></script>
+<script src="https://jonudell.info/hlib/showdown.js"></script>
+<script src="questions.js"></script>
+<script async src="index.js"></script>
+<script src="tinytest.js"></script>
+<style>
+@import url(https://fonts.googleapis.com/css?family=Raleway:500,400,300,800,700);  
+body {
+  font-family: Raleway;
+  word-break: break-word;
+  margin-top:.25in;
+  width: 65%;
+ }  
+ li {
+   margin-bottom: 1em;
+ }
+ div.inspector {
+  white-space: pre;
+  font-size: smaller;
+ }
+ svg {
+   width: 100%;
+   height: auto;
+ }
+ .clinGenSelection {
+   font-style: italic;
+ }
+ a {
+   text-decoration: underline;
+ }
+ .annotationTags a {
+   text-decoration: none;
+ }
+ #params {
+   position: fixed;
+   left: 70%;
+   right: 20px;
+   margin-left: 20px;
+   padding-left: 8px;
+   padding-right: 8px;
+   border-width: thin;
+   border-style: solid;
+   background-color: #faf9f9d6;
+ }
+ #formContainer {
+   margin-bottom: 20px;
+ }
+ #postAnswerButton {
+   display: none;
+ }
+ #skipButton {
+   display: none;
+ }
+ #endRepeatButton {
+   display: none;
+ }
+ .question {
+   display: none
+}
+textarea {
+  width: 60%;
+  height: 6em;
+}
+.choice {
+  line-height: 1.5;
+}
+.buttons {
+  margin-top: 1em;
+}
+.asterisk {
+  font-size: larger;
+  cursor: pointer;
+}
+div.message {
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<h1>AnnotationSurvey</h1>  
+
+<div id="formContainer">
+  <div id="userContainer"></div>
+  <div id="tokenContainer"></div>
+  <div id="groupContainer"></div>
+</div>
+
+<div id="params"></div>
+
+<div id="questions"></div>
+
+<div class="buttons">
+  <button id="postAnswerButton" onclick="postAnswer()">post answer</button> 
+  <!--<button id="skipButton" onclick="postSkippedAnswer()">skip</button>-->
+  <button id="endRepeatButton" onclick="endRepeat()">continue</button>
+</div>
+
+<p id="finished"></p>
+
+
+<!-- this duplicates hlib.setUser because forms created in tests can't see the module -->
+<script>
+  function setUser() {
+    let value = document.getElementById('userForm').value;
+    localStorage.setItem('h_user', value); 
+}
+</script>
+
+<script type="module">  
+
+function sleep(ms) {
+    return new Promise( resolve => { setTimeout(resolve, ms) } )
+}
+
+async function waitSeconds(seconds) {
+  await sleep(seconds * 1000)
+  console.log('done waiting')
+}
+
+function appendBody(element) {
+  document.body.appendChild(element)
+}
+
+function createGroupContainer() {
+  let groupContainer = document.createElement('div');
+  groupContainer.id = 'groupContainer';
+  document.body.append(groupContainer);
+  return groupContainer;
+}
+
+function removeGroupContainer() {
+  let groupContainer = hlib.getById('groupContainer')
+  if (groupContainer) {
+    groupContainer.remove()
+  }
+}
+
+function initIdsToDelete() {
+  localStorage.setItem('idsToDelete',null)
+}
+
+function saveIdsToDelete(idsToDelete) {
+  localStorage.setItem('idsToDelete', JSON.stringify(idsToDelete))
+}
+
+function getIdsToDelete() {
+  return JSON.parse(localStorage.getItem('idsToDelete'))
+}
+
+function addIdToDelete(id) {
+  let idsToDelete = getIdsToDelete()
+  if (! idsToDelete) {
+    idsToDelete = []
+  }
+  idsToDelete.push(id)
+  saveIdsToDelete(idsToDelete)
+}
+
+function deleteTestAnnotation(rowId) {
+  addIdToDelete(rowId)
+  let token = hlib.getToken()
+  try {	
+    assert(rowId)
+    hlib.deleteAnnotation(rowId, token)
+     .then(data => {
+        console.log('deleted test annotation', data)
+     })
+  } catch(e) {
+    throw(e)
+  }
+}
+
+function log(msg) {
+  document.body.innerHTML += `<div class="logMessage">${msg}</div>`
+}
+
+let delay = 3000
+
+tests({ 
+
+'init'  : function () {
+  return new Promise( resolve => {
+    initIdsToDelete()
+    setTimeout( () => {
+      resolve()
+     }, delay)
+  })
+},
+
+'postFirstAnswer': function() {
+  return new Promise( resolve => {
+    let questionKey = findFirstUnansweredQuestionKey()
+    hlib.getById(questionKey).querySelector('input').checked = true
+    postAnswer()
+      .then( (data) => {
+        let response = JSON.parse(data).response
+        let row = JSON.parse(response)
+        assert( row.tags.indexOf('answer:1.01.01') != -1 )
+        setTimeout( () => {
+          eq(questions[questionKey].answer, '1.01.01')
+          addIdToDelete(row.id)
+          resolve(row.id)
+        }, delay)
+      })
+      .then ( _ => {
+        log('postFirstAnswer')
+      })
+    })
+  },
+
+'postSecondAnswer': function() {
+  return new Promise( resolve => {
+    let questionKey = findFirstUnansweredQuestionKey()
+    hlib.getById(questionKey).querySelector('input').checked = true
+    appVars.SELECTION = 'The title'
+    refreshUI()
+    postAnswer()
+      .then( (data) => {
+        let response = JSON.parse(data).response
+        let row = JSON.parse(response)
+        assert( row.tags.indexOf('answer:1.02.01') != -1 )
+        setTimeout( () => {
+          eq(questions[questionKey].answer, '1.02.01')
+          addIdToDelete(row.id)
+          resolve(row.id)
+        }, delay)
+      })
+      .then ( _ => {
+        log('postSecondAnswer')
+      })
+    })
+  },
+
+'postThirdAnswer': function() {
+  return new Promise( resolve => {
+    let questionKey = findFirstUnansweredQuestionKey()
+    hlib.getById(questionKey).querySelectorAll('input')[0].checked = true
+    hlib.getById(questionKey).querySelectorAll('input')[6].checked = true
+    appVars.SELECTION = 'The title'
+    refreshUI()
+    postAnswer()
+      .then( (data) => {
+        let response = JSON.parse(data).response
+        let row = JSON.parse(response)
+        assert( row.tags.indexOf('answer:1.03.01, 1.03.07') != -1 )
+        setTimeout( () => {
+          eq(questions[questionKey].answer, '1.03.01, 1.03.07')
+          addIdToDelete(row.id)
+          resolve(row.id)
+        }, delay)
+      })
+      .then ( _ => {
+        log('postThirdAnswer')
+      })
+    })
+  },
+
+'postFourthAnswer': function() {
+  return new Promise( resolve => {
+    let questionKey = findFirstUnansweredQuestionKey()
+    setTextAreaVal(questionKey, 'A very silly title')
+    postAnswer()
+      .then( (data) => {
+        let response = JSON.parse(data).response
+        let row = JSON.parse(response)
+        assert( row.tags.indexOf('answer:text') != -1 )
+        setTimeout( () => {
+          eq(questions[questionKey].answer, 'A very silly title')
+          addIdToDelete(row.id)
+          resolve(row.id)
+        }, delay)
+      })
+      .then ( _ => {
+        log('postFourthAnswer')
+      })
+    })
+  }, 
+
+'postFifthAnswer': function() {
+  return new Promise( resolve => {
+    let questionKey = findFirstUnansweredQuestionKey()
+    hlib.getById(questionKey).querySelectorAll('input')[3].checked = true
+    postAnswer()
+      .then( (data) => {
+        let response = JSON.parse(data).response
+        let row = JSON.parse(response)
+        assert( row.tags.indexOf('answer:1.04.04') != -1 )
+        setTimeout( () => {
+          eq(questions[questionKey].answer, '1.04.04')
+          addIdToDelete(row.id)
+          resolve(row.id)
+        }, delay)
+      })
+      .then ( _ => {
+        log('postFifthAnswer')
+      })
+    })
+  }, 
+
+'postSixthAnswer': function() {
+  return new Promise( resolve => {
+    let questionKey = findFirstUnansweredQuestionKey()
+    hlib.getById(questionKey).querySelectorAll('input')[1].checked = true
+    postAnswer()
+      .then( (data) => {
+        let response = JSON.parse(data).response
+        let row = JSON.parse(response)
+        assert( row.tags.indexOf('answer:1.07.02') != -1 )
+        setTimeout( () => {
+          eq(questions[questionKey].answer, '1.07.02')
+          addIdToDelete(row.id)
+          resolve(row.id)
+        }, delay)
+      })
+      .then ( _ => {
+        log('postSixthAnswer')
+      })
+    })
+  }, 
+
+'postSeventhAnswer': function() {
+  return new Promise( resolve => {
+    let questionKey = findFirstUnansweredQuestionKey()
+    hlib.getById(questionKey).querySelectorAll('input')[0].checked = true
+    postAnswer()
+      .then( (data) => {
+        let response = JSON.parse(data).response
+        let row = JSON.parse(response)
+        assert( row.tags.indexOf('answer:1.08a.01') != -1 )
+        setTimeout( () => {
+          eq(questions[questionKey].answer, '1.08a.01')
+          addIdToDelete(row.id)
+          resolve(row.id)
+        }, delay)
+      })
+      .then ( _ => {
+        log('postSeventhAnswer')
+      })
+    })
+  },
+
+'postEighthAnswer': function() {
+  return new Promise( resolve => {
+    let questionKey = findFirstUnansweredQuestionKey()
+    hlib.getById(questionKey).querySelectorAll('input')[0].checked = true
+    postAnswer()
+      .then( (data) => {
+        let response = JSON.parse(data).response
+        let row = JSON.parse(response)
+        assert( row.tags.indexOf('answer:1.08.01') != -1 )
+        setTimeout( () => {
+          eq(questions[questionKey].answer, '1.08.01')
+          addIdToDelete(row.id)
+          resolve(row.id)
+        }, delay)
+      })
+      .then ( _ => {
+        log('postEighthAnswer')
+      })
+    })
+  }, 
+
+'postNinthAnswer': function() {
+  return new Promise( resolve => {
+    let questionKey = findFirstUnansweredQuestionKey()
+    appVars.SELECTION = 'The first paragraph'
+    refreshUI()
+    postAnswer()
+      .then( (data) => {
+        let response = JSON.parse(data).response
+        let row = JSON.parse(response)
+        assert( row.tags.indexOf('answer:annotation') != -1 )
+        setTimeout( () => {
+          addIdToDelete(row.id)
+          resolve(row.id)
+        }, delay)
+      })
+      .then ( _ => {
+        log('postNinthAnswer')
+      })
+    })
+  },
+  
+'endRepeat': function() {
+  return new Promise( resolve => {
+    let questionKey = findFirstUnansweredQuestionKey()
+    endRepeat()
+    setTimeout( () => {
+      eq(findFirstUnansweredQuestionKey(), 'Q12')
+      resolve()
+      log('endRepeat')
+    }, delay)
+  })
+},
+  
+'cleanup' : function() {
+  setTimeout( () => {
+    log('starting cleanup')
+    getIdsToDelete().forEach(id => {
+      deleteTestAnnotation(id)
+    })
+    log('done')
+  }, delay * 3)
+},
+
+})
+
+
+</script>
+
+</body>
+</html>

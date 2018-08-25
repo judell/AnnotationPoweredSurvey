@@ -1,7 +1,5 @@
 // annotated spec: http://jonudell.info/h/CredCoContentAnnotation/pe_schema-credweb3.html
 
-const SKIPPED = 'questionSkipped'
-
 const appVars = {
   URL: undefined,        // url acquired on page load
   SELECTION: undefined,  // remaining vars (selector info) passed in messages from host page
@@ -12,9 +10,9 @@ const appVars = {
 
 var lastEventData = {}
 
-const appWindowName = 'CredCo'
+const appWindowName = 'AnnotationSurvey'
 
-const CredCoTag = 'CredCoContentAnnotation'
+const AnnotationSurveyTag = 'AnnotationSurveyCredCo'
 
 // display login fields only if needed
 if (! hlib.getToken()) {
@@ -24,7 +22,7 @@ if (! hlib.getToken()) {
 
 function groupChangeHandler() {
   hlib.setSelectedGroup()
-  updateAnswers()
+  reload()
 }
 
 hlib.createGroupInputForm(hlib.getById('groupContainer'))
@@ -40,17 +38,21 @@ function hasNewMessageData(event) {
 }
 
 function isOurMessage(event) {
-  return event.data.tags && event.data.tags.indexOf(CredCoTag) != -1
+  return event.data.tags && event.data.tags.indexOf(AnnotationSurveyTag) != -1
 }
 
 // listen for messages from the host
 window.addEventListener('message', function(event) {
-  if ( event.data === 'CloseCredCo' ) {
+  if ( event.data === 'CloseAnnotationSurvey' ) {
     window.close()
   } else if (isOurMessage(event)) {
     app(event)
   }
 });
+
+function reload() {
+  app(loadEvent)
+}
 
 function app(event) {
 
@@ -64,19 +66,20 @@ function app(event) {
   } 
 
   if (event.type === 'load') {
-    createQuestions() // do this once only per page load
+    console.log(event.type, event.data)
+    renderQuestions()
   }
 
-  if (event.type=== 'load' || hasNewMessageData(event)) {
+  if (event.type === 'load' || hasNewMessageData(event)) {
+    console.log(event.type, event.data)
     // fetch answers from annotation layer, deposit in the `questions` object
     updateAnswers()
-    setTimeout(updatePriorQuestions, 1000)
-    setTimeout(refreshUI, 1000)
   }
 
 }
 
 function updatePriorQuestions() {
+  console.log('updatePriorQuestions called')
   let questionKeys = getQuestionKeys()
   questionKeys.forEach(questionKey => {
     let question = questions[questionKey]
@@ -95,7 +98,7 @@ function updatePriorQuestions() {
 }
 
 // get base params for an annotation with selectors
-function getApiBaseParams() {
+function getApiBaseParamsForAnnotation() {
   let params = getApiBaseParamsForPageNote()
   params.exact = appVars.SELECTION
   params.prefix = appVars.PREFIX
@@ -110,52 +113,73 @@ function getApiBaseParamsForPageNote() {
     group: hlib.getGroup(),
     username: hlib.getUser(),
     uri: appVars.URL,
-    tags: [CredCoTag],
+    tags: [AnnotationSurveyTag],
   }
 }
 
 function refreshUI() {
-
+  console.log('refreshUI called')
   let paramsDiv = hlib.getById('params');
 
-  let clearSelectionButton = appVars.SELECTION 
-    ? `<button onclick="clearSelection()">clear</button>`
-    : ''
+  let clearSelectionButton = appVars.SELECTION  ? 
+    `<button onclick="clearSelection()">clear</button>`  : ''
+
   paramsDiv.innerHTML = `
      <p><b>Article</b>: <a href="${appVars.URL}">${appVars.URL}</a></p>
      <p>
        <b>Selection</b>: 
-       "<span class="credCoSelection">${appVars.SELECTION ? appVars.SELECTION : ""}</span>" 
+       "<span class="AnnotationSurveySelection">${appVars.SELECTION ? appVars.SELECTION : ""}</span>" 
        ${clearSelectionButton}
      </p>`
 
   showOnlyAnsweredQuestions()
-  
+
   let nextQuestion = showFirstUnansweredQuestion()
   if (nextQuestion === 'done') {
     hlib.getById('formContainer').style.display = 'none'
     hlib.getById('questions').style.display = 'none'
     hlib.getById('params').style.display = 'none'
     hlib.getById('postAnswerButton').style.display = 'none'
-    hlib.getById('skipButton').style.display = 'none'
+    //hlib.getById('skipButton').style.display = 'none'
     hlib.getById('finished').innerHTML = '<b>Done!</b>'
   } else {
     hlib.getById('postAnswerButton').style.display = 'inline'
   }
-  
+
+  subdueAnsweredQuestions()
+
   window.scrollTo(0, document.body.scrollHeight);
+}
+
+function isUnanswered(questionKey) {
+  let question = questions[questionKey]
+  return ( ! question.answer && shouldShow(questionKey) )
 }
 
 function findFirstUnansweredQuestionKey() {
   let questionKeys = getQuestionKeys()
   for (let i=0; i<questionKeys.length; i++) {
     let key = questionKeys[i]
-    if (! questions[key].answer) {
-      return(key)
-      break;
+    if (isUnanswered(key)) {
+      return key
     }
   }
   return 'none'
+}
+
+function findLastAnsweredRepeatableQuestionKey() {
+  let keys = getQuestionKeys()
+  let repeatableKeys = keys.filter(k => {
+    let question = questions[k]
+    return question.answer && question.repeatable
+  })
+  if (repeatableKeys.length) {
+    console.log('findLastAnsweredRepeatableQuestionKey returning ', repeatableKeys.slice(-1)[0])
+    return repeatableKeys.slice(-1)[0]
+  } else {
+    console.log('findLastAnsweredRepeatableQuestionKey returning none')
+    return 'none'
+  }
 }
 
 function subdueAnsweredQuestions() {
@@ -192,31 +216,19 @@ function showOnlyAnsweredQuestions() {
   let questionKeys = getQuestionKeys()
   questionKeys.forEach(key => {
     let question = questions[key]
-    if (question.answer && question.answer !== SKIPPED) {
+    if (question.answer) {
       hlib.getById(key).style.display = 'block'
     } else {
       hlib.getById(key).style.display = 'none'
     }
   })
-  subdueAnsweredQuestions()
 }
 
-function showFirstUnansweredQuestion() {
-  if (countQuestions() == 0) {
-    return 'waiting'
-  }
-  let key = findFirstUnansweredQuestionKey()
-  if (key === 'none') {
-    return 'done'
-  }
-  let question = questions[key]
+function shouldShow(questionKey) {
+  let question = questions[questionKey]
   let requireSpec = question.requires
-  let questionElement = hlib.getById(key)
-
-  hlib.getById('skipButton').style.display = question.canskip ? 'inline' : 'none'
-
+  let shouldShow = requireSpec ? false : true
   if (requireSpec) {
-    let shouldShow = false
     let requiredAnswer = questions[requireSpec.target].answer
     if (requiredAnswer) {
       if (requireSpec.oneOf) {
@@ -229,19 +241,36 @@ function showFirstUnansweredQuestion() {
         // requireSpec.target's answer is a list that contains a specified answer
         requiredAnswerList = requiredAnswer.split(',').map(a => { return a.trim() })
         shouldShow = requiredAnswerList.indexOf(requireSpec.contains) != -1
-      } else if (requireSpec.hasOwnProperty('exists') && requiredAnswer !== SKIPPED) {
+      } else if (requireSpec.hasOwnProperty('exists')) {
         // requireSpec.target's answer is not null
         shouldShow = requiredAnswer != null
-      }
-    }
-    if (! shouldShow) {
-      question.answer = SKIPPED
-      questionElement.style.display = 'none'
-      return showFirstUnansweredQuestion()
+      } 
     }
   }
+  return shouldShow
+}
+
+function showFirstUnansweredQuestion() {
+  if (countQuestions() == 0) {
+    return 'waiting'
+  }
+  let questionKey = findFirstUnansweredQuestionKey()
+  if (questionKey === 'none') {
+    return 'done'
+  }
+  
+  let question = questions[questionKey]
+  let questionElement = hlib.getById(questionKey)
+
+  //hlib.getById('skipButton').style.display = question.canskip ? 'inline' : 'none'
+
+  if (! shouldShow(questionKey)) {
+    questionElement.style.display = 'none'
+    return showFirstUnansweredQuestion()
+  }
+
   questionElement.style.display = 'block'
-  return key
+  return questionKey
 }
 
 function questionBoilerplate(questionKey) {
@@ -260,30 +289,40 @@ function questionBoilerplate(questionKey) {
   return html
 }
 
-function createQuestions() {
+function renderQuestion(question, key) {
+  if (question.type === 'radio') {
+    renderRadioQuestion(key)
+  } else if (question.type === 'checkbox') {
+    renderCheckboxQuestion(key)
+  } else if (question.type === 'textarea') {
+    renderTextAreaQuestion(key)
+  } else if (question.type === 'highlight') {
+    renderHighlightQuestion(key)
+  } else {
+    console.log('unexpected question type')
+  }
+}
+
+function renderQuestions() {
+  console.log('renderQuestions', getQuestionKeys())
   let questionKeys = getQuestionKeys()
   questionKeys.forEach(key => {
     let question = questions[key]
     if (! hlib.getById(key)) {
-      if (question.type === 'radio') {
-        createRadioQuestion(key)
-      } else if (question.type === 'checkbox') {
-        createCheckboxQuestion(key)
-      } else if (question.type === 'textarea') {
-        createTextAreaQuestion(key)
-      } else if (question.type === 'highlight') {
-        createHighlightQuestion(key)
-      } else {
-        console.log('unexpected question type')
-      }
+      renderQuestion(question, key)
     }
   })
 }
 
-function updateAnswers() {
+function endRepeat() {
+  setEndSequenceTag()
+}
+
+function setEndSequenceTag() {
+  let questionKey = findLastAnsweredRepeatableQuestionKey()
   let opts = {
     method: 'GET',
-    url: `https://hypothes.is/api/search?uri=${appVars.URL}&tags=${CredCoTag}&group=${hlib.getGroup()}&limit=200`,
+    url: `https://hypothes.is/api/search?group=${hlib.getGroup()}&tags=${questionKey}`,
     headers: {
       Authorization: 'Bearer ' + hlib.getToken(),
       'Content-Type': 'application/json;charset=utf-8'
@@ -291,13 +330,70 @@ function updateAnswers() {
   }
   hlib.httpRequest(opts)
     .then( data => {
-      let tags = {}
+      let anno = hlib.parseAnnotation(JSON.parse(data.response).rows[0])
+      let tags = anno.tags
+      tags.push('EndSequence')
+      let payload = {
+        tags : tags,
+      }
+      hlib.updateAnnotation(anno.id, hlib.getToken(), JSON.stringify(payload))
+        .then ( (data) => {
+          console.log(JSON.parse(data.response))
+          let nextQuestionKey = incrementQuestionKey(questionKey)
+          delete questions[nextQuestionKey]
+          hlib.getById(nextQuestionKey).remove()
+          reload()
+        })
+    })
+}
+
+function hasEndSequenceTag(rows, questionKey) {
+  let found = rows.filter(r => { 
+    return r.tags.indexOf(questionKey) != -1 && r.tags.indexOf('EndSequence') != -1
+  })
+  return found.length
+}
+
+function hasRepeatedAnswer(rows, questionKey) {
+  return rows.map( row => {
+    return row.tags.indexOf(questionKey)
+  })
+  .filter( x => {
+    return (x == 1) })
+  .length
+}
+
+function extractAnswer(tag, questionKey, anno) {
+  let question = questions[questionKey]
+  if (question.type === 'textarea') {
+    // the answer was posted as a tag, answer:text, so use what's wrapped by [[ ]] in the annotations text element
+    question.answer = anno.text.match('\\[\\[([^]+)\]\]')[1]   
+  } else if (question.type === 'highlight') {
+    // the answer was posted as a tag, answer:annotation, so use the annotation's URL
+    question.answer = `https://hypothes.is/a/${anno.id}`
+    setHighlightVal(questionKey, question.answer)
+  } else {
+    // the answer is in the tag
+    question.answer = tag.replace('answer:','')
+  }
+}
+
+function updateAnswers() {
+  console.log('updateAnswers called')
+  let opts = {
+    method: 'GET',
+    url: `https://hypothes.is/api/search?uri=${appVars.URL}&tags=${AnnotationSurveyTag}&group=${hlib.getGroup()}&limit=200`,
+    headers: {
+      Authorization: 'Bearer ' + hlib.getToken(),
+      'Content-Type': 'application/json;charset=utf-8'
+    },
+  }
+  hlib.httpRequest(opts)
+    .then( data => {
       let rows = JSON.parse(data.response).rows
+      console.log('updateAnswers got', rows.length)
       let output = `<p>${rows.length} annotations</p>`
       let questionKeys = getQuestionKeys()
-      questionKeys.forEach(questionKey => {
-        questions[questionKey].answer = null
-      })
       rows.forEach(row => {
         let anno = hlib.parseAnnotation(row)
         let tags = anno.tags
@@ -307,109 +403,133 @@ function updateAnswers() {
             let _tags = anno.tags
             _tags.forEach(_tag => {
               if (_tag.indexOf('answer:') == 0) {
-                let question = questions[questionKey]
-                if (question.type === 'textarea') {
-                  // the answer was posted as a tag, answer:text, so use what's wrapped by [[ ]] in the annotations text element
-                  question.answer = anno.text.match('\\[\\[([^]+)\]\]')[1]   
-                } else if (question.type === 'highlight') {
-                  // the answer was posted as a tag, answer:annotation, so use the annotation's URL
-                  question.answer = `https://hypothes.is/a/${anno.id}`
-                  setHighlightVal(questionKey, question.answer)
-                } else {
-                  // the answer is in the tag
-                  question.answer = _tag.replace('answer:','')
-                }
+                extractAnswer(_tag, questionKey, anno)
               }
             })
           }
         })
       })
+    return rows
     })
-    .then ( () => {
+    .then ( (rows) => {
+      console.log('rows after update answers', rows)
+      let lastAnsweredRepeatableKey = findLastAnsweredRepeatableQuestionKey()
+      console.log('updateAnswers: lastAnsweredRepeatableKey', lastAnsweredRepeatableKey)
+      let endSequence = hasEndSequenceTag(rows, lastAnsweredRepeatableKey)
+      console.log('updateAnswers: hasEndSequenceTag', endSequence)
+      if (lastAnsweredRepeatableKey !== 'none' && ! endSequence) {
+        lastAnswer = questions[lastAnsweredRepeatableKey].answer
+        let newQuestionKey = addRepeatQuestion(lastAnsweredRepeatableKey)
+        console.log('added', newQuestionKey)
+        if (hasRepeatedAnswer(rows, newQuestionKey)) {
+            updateAnswers()
+        } 
+      }
+      else {
+        hlib.getById('endRepeatButton').style.display = 'none'
+        console.log('at end of sequence', lastAnsweredRepeatableKey)
+      }        
+      console.log( 'calling updatePriorQuestions and refreshUI after updateAnswers')    
+      updatePriorQuestions()
       refreshUI()
     })
 }
 
-function postSkippedAnswer() {
-  postAnswer(true)
+function incrementQuestionKey(questionKey) {
+  let str = questionKey.match(/_(\d+)/)[1]
+  let num = parseInt(str)
+  num += 1
+  return questionKey.replace(str, num.toString().padStart(2,'0'))
 }
 
-function postAnswer(skip) {
+function insertAfter(newQuestionKey, baseQuestionKey) {
+  let baseQuestionElement = hlib.getById(baseQuestionKey)
+  let newQuestionElement = hlib.getById(newQuestionKey)
+  baseQuestionElement.parentNode.insertBefore(newQuestionElement, baseQuestionElement.nextSibling);
+}
 
-  if (! hlib.getToken()) {
-    alert('Please provide your Hypothesis username and API token, then retry.')
-    return
-  }
-
-  let questionKey = findFirstUnansweredQuestionKey()
-
-  let question = questions[questionKey]
-
-  if (question.anchored && ! appVars.SELECTION && ! skip) {
-    alert('selection required')
-    setTimeout( refreshUI, 500)
-    return
-  }
-
-  let params
-  if (skip || ! question.anchored) {
-    params = getApiBaseParamsForPageNote()
-  } else {
-    params = getApiBaseParams()
-  }
+function addRepeatQuestion(baseQuestionKey) {
+  let baseQuestion = questions[baseQuestionKey]
+  let newQuestionKey = incrementQuestionKey(baseQuestionKey)
+  console.log(`addRepeatQuestion: ${newQuestionKey}`)
+  questions[newQuestionKey] = Object.assign({}, baseQuestion)
+  let newQuestion = questions[newQuestionKey]
+  newQuestion.answer = null
+  renderQuestion(newQuestion, newQuestionKey)
+  insertAfter(newQuestionKey, baseQuestionKey)
+  hlib.getById('endRepeatButton').style.display = 'inline'
+  return newQuestionKey
+}
   
-  const type = question.type
-  const title = question.title
-  
-  var answer
-
-  if (type === 'radio') {
-    answer = getRadioVal(questionKey)
-  } else if (type === 'checkbox') {
-    answer = getCheckboxVals(questionKey)
-  } else if (type === 'textarea') {
-    answer = getTextAreaVal(questionKey)
-  } else if (type === 'highlight') {
-    answer = getHighlightVal(questionKey)
-  }
-
-  if (answer || skip) {
-    params.text = `<p><b>${title}</b></p><p><i>${question.question}</i></p>`
-    if ( question.type === 'radio' || question.type === 'checkbox') {
-      let choices = JSON.stringify(question.choices, null, 2)
-      params.text += `<p>Choices: <div>${choices}</div></p>`
+function postAnswer() {
+  return new Promise( (resolve) => {
+    if (! hlib.getToken()) {
+      alert('Please provide your Hypothesis username and API token, then retry.')
+      return
     }
-    params.tags.push(questionKey)
-    if ( question.type === 'textarea') {
-      // post answer in annotation body wrapped in [[ ]]
-      params.text += `<p>Answer: [[${answer}]]</p>`
-      // signal in a tag that the answer is in text
-      params.tags.push('answer:text')
-    } else if (question.type === 'highlight') {
-        if (skip) {
-          // signal that  the question was skipped
-          params.tags.push('answer:skipped')
-        } else {
-          // signal that the answer is part of the annotation
-          params.tags.push('answer:annotation')
-        }
+
+    let questionKey = findFirstUnansweredQuestionKey()
+
+    let question = questions[questionKey]
+
+    if (question.anchored && ! appVars.SELECTION) {
+      alert('selection required')
+      setTimeout( refreshUI, 500)
+      return
+    }
+
+    let params
+    if (question.anchored) {
+      params = getApiBaseParamsForAnnotation()
     } else {
-      // include short answer codes, like 1.08.03, directly in a tag
-      params.tags.push('answer:' + answer)
+      params = getApiBaseParamsForPageNote()
     }
-    let payload = hlib.createAnnotationPayload(params)
-    let token = hlib.getToken()
-    hlib.postAnnotation(payload, token)
-      .then( (data) => {
-        let response = JSON.parse(data.response)
-      })
-      .then( () => {
-        setTimeout(updateAnswers, 1000)
-      })
-  } else {
-    alert('no answer')
-  }
+    
+    const type = question.type
+    const title = question.title
+    
+    var answer
 
+    if (type === 'radio') {
+      answer = getRadioVal(questionKey)
+    } else if (type === 'checkbox') {
+      answer = getCheckboxVals(questionKey)
+    } else if (type === 'textarea') {
+      answer = getTextAreaVal(questionKey)
+    } else if (type === 'highlight') {
+      answer = getHighlightVal(questionKey)
+    }
+
+    if (answer) {
+      params.text = `<p><b>${title}</b></p><p><i>${question.question}</i></p>`
+      if ( question.type === 'radio' || question.type === 'checkbox') {
+        let choices = JSON.stringify(question.choices, null, 2)
+        params.text += `<p>Choices: <div>${choices}</div></p>`
+      }
+      params.tags.push(questionKey)
+      if ( question.type === 'textarea') {
+        // post answer in annotation body wrapped in [[ ]]
+        params.text += `<p>Answer: [[${answer}]]</p>`
+        // signal in a tag that the answer is in text
+        params.tags.push('answer:text')
+      } else if (question.type === 'highlight') {
+        params.tags.push('answer:annotation')
+      } else {
+        // include short answer codes, like 1.08.03, directly in a tag
+        params.tags.push('answer:' + answer)
+      }
+      console.log(params)
+      let payload = hlib.createAnnotationPayload(params)
+      let token = hlib.getToken()
+      hlib.postAnnotation(payload, token)
+        .then( (data) => {
+          setTimeout(reload, 1000)
+          resolve(JSON.stringify(data))
+        })
+    } else {
+      alert('no answer')
+    }
+  })
 }
 
 function clearViewer() {
@@ -423,7 +543,7 @@ function clearSelection() {
   refreshUI()
 }
 
-function createRadioQuestion(questionKey) {
+function renderRadioQuestion(questionKey) {
   let question = questions[questionKey]
   let html = questionBoilerplate(questionKey)
   let choices = question.choices
@@ -460,7 +580,7 @@ function setRadioVal(questionKey, val) {
   }
 }
 
-function createCheckboxQuestion(questionKey) {
+function renderCheckboxQuestion(questionKey) {
   let question = questions[questionKey]
   let html = questionBoilerplate(questionKey)
   let choices = question.choices
@@ -499,7 +619,7 @@ function setCheckboxVals(questionKey, vals) {
   }
 }
 
-function createTextAreaQuestion(questionKey) {
+function renderTextAreaQuestion(questionKey) {
   let question = questions[questionKey]
   let html = questionBoilerplate(questionKey)
   html += `<textarea name="${questionKey}"></textarea>`
@@ -516,7 +636,7 @@ function setTextAreaVal(questionKey, val) {
   textbox.disabled = true
 }
 
-function createHighlightQuestion(questionKey) {
+function renderHighlightQuestion(questionKey) {
   let question = questions[questionKey]
   let html = questionBoilerplate(questionKey)
   html += `<div name="${questionKey}"></div>`
@@ -532,5 +652,5 @@ function setHighlightVal(questionKey, val) {
 }
 
 const loadEvent = new MessageEvent('load', {})
-window.onload = app(loadEvent)
+window.onload = reload()
 

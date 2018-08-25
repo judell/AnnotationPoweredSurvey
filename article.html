@@ -1,5 +1,17 @@
-// runs from a bookmarklet, injects a relay into a host page, sends messages to the app
+<html>
+<head>
 
+<script src="https://jonudell.info/hlib/StandaloneAnchoring.js"></script>
+<script src="https://jonudell.info/hlib/hlib.bundle.js"></script>
+
+<body>
+<h1>The title</h1>
+
+<p>The first paragraph</p>
+
+<p>The second paragraph</p>
+
+<script>
 var AnnotationSurveyWindow
 
 var AnnotationSurveyTag = 'AnnotationSurveyCredCo'
@@ -17,7 +29,7 @@ document.addEventListener('mouseup', e => {
     if (AnnotationSurveyWindow) {
       let message = {
         'selection':'',
-        'tags':  [AnnotationSurveyCredCo]
+        'tags':  [AnnotationSurveyTag]
       }
       AnnotationSurveyWindow.postMessage(message, '*')
     }
@@ -67,7 +79,7 @@ function gather() {
     params.selection = ''
   }
 
-  // common tag for all CredCo-related annotations
+  // common tag for all AnnotationSurvey-related annotations
   // the app expects this tag on a message 
   params.tags = [AnnotationSurveyTag]
 
@@ -85,7 +97,7 @@ function gather() {
     activator.innerHTML = '<button title="send selection" onclick="gather()">send selection</button>'
     document.body.insertBefore(activator, document.body.firstChild)
     let opener = "width=700, height=900, toolbar=yes, top=-1000"
-    AnnotationSurveyWindow = window.open( `https://jonudell.info/h/CredCoContentAnnotation/index.html?url=${location.href}`, '_credco', opener)
+    AnnotationSurveyWindow = window.open( `http://10.0.0.9:8000/test.html?url=${location.href}`, '_AnnotationSurvey', opener)
   } else {
     AnnotationSurveyWindow.postMessage(params, '*') // talk to the app
     hlib.getById('activator').style.visibility = 'hidden'
@@ -95,4 +107,6 @@ function gather() {
 
 gather()
 
- 
+</script>
+</body>
+</html>
