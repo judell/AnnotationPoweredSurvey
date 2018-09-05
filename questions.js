@@ -24,6 +24,7 @@
       '1.02.04:Completely Representative',      
     ],
     'anchored' : true,
+    'newSelectionRequired' : true,
   },
   'Q03' : {
     'type' : 'checkbox',
@@ -137,6 +138,7 @@
     'title' : 'Expert sources',
     'question' : 'Highlight expert source',
     'anchored': true,
+    'newSelectionRequired' : true,
     'requires' : {
       'target': 'Q08b',
       'contains' : '1.08.01',
@@ -148,6 +150,7 @@
     'title' : 'Studies',
     'question' : 'Highlight study',
     'anchored': true,
+    'newSelectionRequired' : true,
     'requires' : {
       'target': 'Q08b',
       'contains' : '1.08.02',
@@ -159,6 +162,7 @@
     'title' : 'Organizations',
     'question' : 'Highlight organization',
     'anchored': true,
+    'newSelectionRequired' : true,
     'requires' : {
       'target': 'Q08b',
       'contains' : '1.08.03',
@@ -180,6 +184,7 @@
     'title' : 'Other types of sources',
     'question' : 'Other source',
     'anchored': true,
+    'newSelectionRequired' : true,
     'requires' : {
       'target': 'Q12',
       'contains' : '1.12.01',
@@ -223,6 +228,7 @@
     'title' : 'Acknowledgement of uncertainty',
     'question' : 'Highlight uncertainty example',
     'anchored': true,
+    'newSelectionRequired' : true,
     'requires' : {
       'target': 'Q14',
       'oneOf' : ['1.14.01', '1.14.02'],
@@ -245,6 +251,7 @@
     'title' : 'Straw man argument',
     'question' : 'Highlight straw man example',
     'anchored': true,
+    'newSelectionRequired' : true,
     'requires' : {
       'target' : 'Q15',
       'oneOf' : ['1.15.01', '1.15.02']
@@ -267,6 +274,7 @@
     'title' : 'False dilemma',
     'question' : 'Highlight false dilemma example',
     'anchored': true,
+    'newSelectionRequired' : true,
     'requires' : {
       'target' : 'Q16',
       'oneOf' : ['1.16.01', '1.16.02']
@@ -289,6 +297,7 @@
     'title' : 'Slippery slope',
     'question' : 'Highlight slippery slope example',
     'anchored': true,
+    'newSelectionRequired' : true,
     'requires' : {
       'target' : 'Q17',
       'oneOf' : ['1.17.01', '1.17.02']
@@ -311,6 +320,7 @@
     'title' : 'Scare tactics',
     'question' : 'Highlight scare tactic example',
     'anchored': true,
+    'newSelectionRequired' : true,
     'requires' : {
       'target' : 'Q18',
       'oneOf' : ['1.18.01', '1.18.02']
@@ -333,6 +343,7 @@
     'title' : 'Naturalistic fallacy',
     'question' : 'Highlight naturalistic fallacy example',
     'anchored': true,
+    'newSelectionRequired' : true,
     'requires' : {
       'target' : 'Q19',
       'oneOf' : ['1.19.01', '1.19.02']
@@ -355,6 +366,7 @@
     'title' : 'Emotionally charged tone',
     'question' : 'Highlight charged tone example',
     'anchored': true,
+    'newSelectionRequired' : true,
     'requires' : {
       'target' : 'Q20',
       'oneOf' : ['1.20.01', '1.20.02']
@@ -377,6 +389,7 @@
     'title' : 'Exaggerated claims',
     'question' : 'Exaggerate claim example',
     'anchored': true,
+    'newSelectionRequired' : true,
     'requires' : {
       'target' : 'Q21',
       'oneOf' : ['1.21.01', '1.21.02']
@@ -399,6 +412,7 @@
     'title' : 'Causal claims',
     'question' : 'General causal claim example',
     'anchored': true,
+    'newSelectionRequired' : true,
     'requires' : {
       'target' : 'Q22',
       'equal' : '1.22.01',
@@ -409,6 +423,7 @@
     'title' : 'Causal claims',
     'question' : 'Singular causal claim',
     'anchored': true,
+    'newSelectionRequired' : true,
     'requires' : {
       'target' : 'Q22',
       'equal' : '1.22.02',
