@@ -5,13 +5,17 @@ const green = '#99ff99';
 
 const red =  '#ff9999';
 
-let failures = 0
-
 let testName
+
+let testMode = true
 
 function logMessage(msg) {
   document.body.innerHTML += `<div>${msg}</div`
   document.body.style.backgroundColor = red
+}
+
+window.alert = function(str) {
+  localStorage.setItem('h_alert', str)
 }
 
 const TinyTest = {
@@ -45,7 +49,10 @@ const TinyTest = {
     testName = 'postEighthAnswer'
     tests[testName]()
     .then ( () => {
-    testName = 'postNinthAnswer'
+    testName = 'postNinthAnswerWithUnchangedSelection'
+    tests[testName]()
+    .then ( () => {
+    testName = 'postNinthAnswerWithChangedSelection'
     tests[testName]()
     .then ( () => {
     testName = 'endRepeat'
@@ -53,17 +60,7 @@ const TinyTest = {
     .then ( () => {
     testName = 'cleanup'
     tests[testName]()
-    })
-    })
-    })
-    })
-    })
-    })
-    })
-    })
-    })
-    })
-    })
+    }) }) }) }) }) }) }) }) }) }) }) })
 
   setTimeout(function() { // Give document a chance to complete
     if (window.document && document.body) {
