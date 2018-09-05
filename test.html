@@ -167,6 +167,13 @@ function deleteTestAnnotation(rowId) {
   }
 }
 
+function clearAnswers() {
+  let questionKeys = getQuestionKeys()
+  questionKeys.forEach(questionKey => {
+    questions[questionKey].answer = null
+  })
+}
+
 function log(msg) {
   document.body.innerHTML += `<div class="logMessage">${msg}</div>`
 }
@@ -196,10 +203,10 @@ tests({
         setTimeout( () => {
           eq(questions[questionKey].answer, '1.01.01')
           addIdToDelete(row.id)
-          resolve(row.id)
+          resolve()
         }, delay)
       })
-      .then ( _ => {
+      .finally ( _ => {
         log('postFirstAnswer')
       })
     })
@@ -219,10 +226,10 @@ tests({
         setTimeout( () => {
           eq(questions[questionKey].answer, '1.02.01')
           addIdToDelete(row.id)
-          resolve(row.id)
+          resolve()
         }, delay)
       })
-      .then ( _ => {
+      .finally ( _ => {
         log('postSecondAnswer')
       })
     })
@@ -243,10 +250,10 @@ tests({
         setTimeout( () => {
           eq(questions[questionKey].answer, '1.03.01, 1.03.07')
           addIdToDelete(row.id)
-          resolve(row.id)
+          resolve()
         }, delay)
       })
-      .then ( _ => {
+      .finally ( _ => {
         log('postThirdAnswer')
       })
     })
@@ -264,10 +271,10 @@ tests({
         setTimeout( () => {
           eq(questions[questionKey].answer, 'A very silly title')
           addIdToDelete(row.id)
-          resolve(row.id)
+          resolve()
         }, delay)
       })
-      .then ( _ => {
+      .finally ( _ => {
         log('postFourthAnswer')
       })
     })
@@ -285,10 +292,10 @@ tests({
         setTimeout( () => {
           eq(questions[questionKey].answer, '1.04.04')
           addIdToDelete(row.id)
-          resolve(row.id)
+          resolve()
         }, delay)
       })
-      .then ( _ => {
+      .finally ( _ => {
         log('postFifthAnswer')
       })
     })
@@ -306,10 +313,10 @@ tests({
         setTimeout( () => {
           eq(questions[questionKey].answer, '1.07.02')
           addIdToDelete(row.id)
-          resolve(row.id)
+          resolve()
         }, delay)
       })
-      .then ( _ => {
+      .finally ( _ => {
         log('postSixthAnswer')
       })
     })
@@ -327,10 +334,10 @@ tests({
         setTimeout( () => {
           eq(questions[questionKey].answer, '1.08a.01')
           addIdToDelete(row.id)
-          resolve(row.id)
+          resolve()
         }, delay)
       })
-      .then ( _ => {
+      .finally ( _ => {
         log('postSeventhAnswer')
       })
     })
@@ -348,17 +355,34 @@ tests({
         setTimeout( () => {
           eq(questions[questionKey].answer, '1.08.01')
           addIdToDelete(row.id)
-          resolve(row.id)
+          resolve()
         }, delay)
       })
-      .then ( _ => {
+      .finally ( _ => {
         log('postEighthAnswer')
       })
     })
   }, 
 
-'postNinthAnswer': function() {
-  return new Promise( resolve => {
+'postNinthAnswerWithUnchangedSelection': function() {
+  return new Promise( (resolve) => {
+    let questionKey = findFirstUnansweredQuestionKey()
+    //appVars.SELECTION = 'The first paragraph'
+    refreshUI()
+    postAnswer()
+      .then( _ => {
+        eq(localStorage.getItem('h_alert'), 'new selection required')
+        delete localStorage.h_alert
+        resolve()
+      })
+      .finally ( _ => {
+        log('postNinthAnswerWithUnchangedSelection')
+      })
+    })
+  },
+
+'postNinthAnswerWithChangedSelection': function() {
+  return new Promise( (resolve) => {
     let questionKey = findFirstUnansweredQuestionKey()
     appVars.SELECTION = 'The first paragraph'
     refreshUI()
@@ -369,14 +393,15 @@ tests({
         assert( row.tags.indexOf('answer:annotation') != -1 )
         setTimeout( () => {
           addIdToDelete(row.id)
-          resolve(row.id)
+          resolve()
         }, delay)
       })
-      .then ( _ => {
-        log('postNinthAnswer')
+      .finally ( _ => {
+        log('postNinthAnswerWithChangedSelection')
       })
     })
   },
+
   
 'endRepeat': function() {
   return new Promise( resolve => {
@@ -391,13 +416,17 @@ tests({
 },
   
 'cleanup' : function() {
-  setTimeout( () => {
-    log('starting cleanup')
-    getIdsToDelete().forEach(id => {
-      deleteTestAnnotation(id)
-    })
-    log('done')
-  }, delay * 3)
+  return new Promise (resolve => {
+    setTimeout( () => {
+      log('starting cleanup')
+      getIdsToDelete().forEach(id => {
+        deleteTestAnnotation(id)
+      })
+      initIdsToDelete()
+      log('cleanup done')
+      resolve()
+    }, delay * 3)
+  })
 },
 
 })
