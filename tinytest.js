@@ -9,7 +9,7 @@ let testName
 
 let testMode = true
 
-function logMessage(msg) {
+function logError(msg) {
   document.body.innerHTML += `<div>${msg}</div`
   document.body.style.backgroundColor = red
 }
@@ -52,7 +52,7 @@ const TinyTest = {
     testName = 'postEighthAnswer'
     tests[testName]()
     .then ( () => {
-    testName = 'postNinthAnswerWithUnchangedSelection'
+    testName = 'postNinthAnswerWithUnchangedSelectionPopsAlert'
     tests[testName]()
     .then ( () => {
     testName = 'postNinthAnswerWithChangedSelection'
@@ -77,7 +77,7 @@ const TinyTest = {
     if (!value) {
       let msg = `${testName}: 'no value'`
       console.error(msg)
-      logMessage(msg)
+      logError(msg)
     }
   },
 
@@ -85,7 +85,7 @@ const TinyTest = {
     if (expected != actual) {
       let msg = `${testName}: expected ${expected}, actual ${actual}`
       console.error(msg)
-      logMessage(msg)
+      logError(msg)
     }
   },
 
@@ -93,7 +93,7 @@ const TinyTest = {
     if (expected == actual) {
       let msg = `${testName}: expected ${expected} !== ${actual}`
       console.error(msg)
-      logMessage(msg)
+      logError(msg)
     }
   },
 
