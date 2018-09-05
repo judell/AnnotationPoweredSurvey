@@ -191,6 +191,14 @@ tests({
   })
 },
 
+'publicGroupIsGone' : function() {
+  return new Promise( resolve => {
+    let firstGroupValue = hlib.getById('groupsList').querySelectorAll('option')[0].value
+    assertNotEquals (firstGroupValue, '__world__')
+    resolve()
+  })
+},
+
 'postFirstAnswer': function() {
   return new Promise( resolve => {
     let questionKey = findFirstUnansweredQuestionKey()

@@ -25,6 +25,9 @@ const TinyTest = {
     testName = 'init'
     tests[testName]()
     .then( () => {
+    testName = 'publicGroupIsGone'
+    tests[testName]()
+    .then( () => {
     testName = 'postFirstAnswer'
     tests[testName]()
     .then ( () => {
@@ -60,7 +63,7 @@ const TinyTest = {
     .then ( () => {
     testName = 'cleanup'
     tests[testName]()
-    }) }) }) }) }) }) }) }) }) }) }) })
+    }) }) }) }) }) }) }) }) }) }) }) }) })
 
   setTimeout(function() { // Give document a chance to complete
     if (window.document && document.body) {
@@ -85,6 +88,15 @@ const TinyTest = {
       logMessage(msg)
     }
   },
+
+  assertNotEquals: function(expected, actual) {
+    if (expected == actual) {
+      let msg = `${testName}: expected ${expected} !== ${actual}`
+      console.error(msg)
+      logMessage(msg)
+    }
+  },
+
   
 };
 
@@ -92,5 +104,6 @@ const fail                = TinyTest.fail,
       assert              = TinyTest.assert,
       assertEquals        = TinyTest.assertEquals,
       eq                  = TinyTest.assertEquals, // alias for assertEquals
+      assertNotEquals     = TinyTest.assertNotEquals,
       assertStrictEquals  = TinyTest.assertStrictEquals,
       tests               = TinyTest.run;

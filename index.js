@@ -29,7 +29,9 @@ function groupChangeHandler() {
 
 hlib.createGroupInputForm(hlib.getById('groupContainer'))
 setTimeout( () => {
-  hlib.getById('groupsList').setAttribute('onchange', 'groupChangeHandler()')
+  let groupsList = hlib.getById('groupsList')
+  groupsList.querySelectorAll('option')[0].remove()
+  groupsList.setAttribute('onchange', 'groupChangeHandler()')
   }, 1000)
 
 function hasNewMessageData(event) {
