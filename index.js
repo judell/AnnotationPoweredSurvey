@@ -8,7 +8,9 @@ const appVars = {
   END: undefined,
 }
 
-var lastEventData = {}
+let lastEventData = {}
+
+let lastPostedSelection = ''
 
 const appWindowName = 'AnnotationSurvey'
 
@@ -134,8 +136,9 @@ function refreshUI() {
 
   showOnlyAnsweredQuestions()
 
-  let nextQuestion = showFirstUnansweredQuestion()
-  if (nextQuestion === 'done') {
+  let nextQuestionKey = showFirstUnansweredQuestion()
+
+  if (nextQuestionKey === 'done') {
     hlib.getById('formContainer').style.display = 'none'
     hlib.getById('questions').style.display = 'none'
     hlib.getById('params').style.display = 'none'
@@ -478,8 +481,20 @@ function postAnswer() {
       return
     }
 
+    if (question.newSelectionRequired && lastPostedSelection === appVars.SELECTION) {
+      alert('new selection required')
+      setTimeout( refreshUI, 500)
+      if (typeof(testMode) !== 'undefined') {
+        resolve()
+        return
+      } else {
+        return
+      }
+    }
+
     let params
     if (question.anchored) {
+      lastPostedSelection = appVars.SELECTION
       params = getApiBaseParamsForAnnotation()
     } else {
       params = getApiBaseParamsForPageNote()
@@ -522,7 +537,7 @@ function postAnswer() {
       let payload = hlib.createAnnotationPayload(params)
       let token = hlib.getToken()
       hlib.postAnnotation(payload, token)
-        .then( (data) => {
+        .then( data => {
           setTimeout(reload, 1000)
           resolve(JSON.stringify(data))
         })
