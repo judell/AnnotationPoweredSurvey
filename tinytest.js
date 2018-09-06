@@ -7,8 +7,6 @@ const red =  '#ff9999';
 
 let testName
 
-let testMode = true
-
 function logError(msg) {
   document.body.innerHTML += `<div>${msg}</div`
   document.body.style.backgroundColor = red
