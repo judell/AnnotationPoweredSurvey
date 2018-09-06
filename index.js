@@ -486,12 +486,8 @@ function postAnswer() {
     if (question.newSelectionRequired && lastPostedSelection === appVars.SELECTION) {
       alert('new selection required')
       setTimeout( refreshUI, 500)
-      if (typeof(testMode) !== 'undefined') {
-        resolve()
-        return
-      } else {
-        return
-      }
+      resolve()
+      return
     }
 
     let params
