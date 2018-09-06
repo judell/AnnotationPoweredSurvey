@@ -31,6 +31,7 @@ hlib.createGroupInputForm(hlib.getById('groupContainer'))
 setTimeout( () => {
   let groupsList = hlib.getById('groupsList')
   groupsList.querySelectorAll('option')[0].remove()
+  hlib.setSelectedGroup()
   groupsList.setAttribute('onchange', 'groupChangeHandler()')
   }, 1000)
 
