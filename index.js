@@ -146,13 +146,10 @@ function refreshUI() {
     hlib.getById('questions').style.display = 'none'
     hlib.getById('params').style.display = 'none'
     hlib.getById('postAnswerButton').style.display = 'none'
-    //hlib.getById('skipButton').style.display = 'none'
     hlib.getById('finished').innerHTML = '<b>Done!</b>'
   } else {
     hlib.getById('postAnswerButton').style.display = 'inline'
   }
-
-  subdueAnsweredQuestions()
 
   window.scrollTo(0, document.body.scrollHeight);
 }
@@ -228,6 +225,7 @@ function showOnlyAnsweredQuestions() {
       hlib.getById(key).style.display = 'none'
     }
   })
+  subdueAnsweredQuestions()
 }
 
 function shouldShow(questionKey) {
@@ -268,8 +266,6 @@ function showFirstUnansweredQuestion() {
   let question = questions[questionKey]
   let questionElement = hlib.getById(questionKey)
 
-  //hlib.getById('skipButton').style.display = question.canskip ? 'inline' : 'none'
-
   if (! shouldShow(questionKey)) {
     questionElement.style.display = 'none'
     return showFirstUnansweredQuestion()
@@ -287,8 +283,8 @@ function questionBoilerplate(questionKey) {
   }
   let html = `
     <div class="question" id="${questionKey}">
-    <h2>${question.title}${asterisk}</h2>
-    <h3>${question.question}</h2>`
+      <h2>${question.title}${asterisk}</h2>
+      <h3>${question.question}</h2>`
   if (question.prompt) {
     html += `<p><i>${question.prompt}</i></p>`
   }
@@ -324,6 +320,8 @@ function endRepeat() {
   setEndSequenceTag()
 }
 
+// user pressed the continue button shown when a question is repeatable
+// mark the corresponding annotation as end-of-sequence
 function setEndSequenceTag() {
   let questionKey = findLastAnsweredRepeatableQuestionKey()
   let opts = {
@@ -353,6 +351,8 @@ function setEndSequenceTag() {
     })
 }
 
+// rows is the set of annotations returned from
+// /api/search?uri=${appVars.URL}&tags=${AnnotationSurveyTag}&group=${hlib.getGroup()}
 function hasEndSequenceTag(rows, questionKey) {
   let found = rows.filter(r => { 
     return r.tags.indexOf(questionKey) != -1 && r.tags.indexOf('EndSequence') != -1
@@ -360,15 +360,21 @@ function hasEndSequenceTag(rows, questionKey) {
   return found.length
 }
 
-function hasRepeatedAnswer(rows, questionKey) {
-  return rows.map( row => {
-    return row.tags.indexOf(questionKey)
+// does the set of annotations contain an answer to the question?
+function hasAnswer(rows, questionKey) {
+  let foundAnswers = rows.map( row => {
+    return row.tags.indexOf(questionKey) != -1
   })
-  .filter( x => {
-    return (x == 1) })
-  .length
+  foundAnswers.forEach(answer => {
+    if (answer) {
+      return true
+    }
+  })
+  return false
 }
 
+// extract the answer from an annotation returned by the url/tag/question query
+// and save it in the questions object
 function extractAnswer(tag, questionKey, anno) {
   let question = questions[questionKey]
   if (question.type === 'textarea') {
@@ -394,6 +400,8 @@ function updateAnswers() {
       'Content-Type': 'application/json;charset=utf-8'
     },
   }
+  // answers are stored in the annotation layer
+  // to fetch the set of answers for the current instance of the app, search for the url/tag/group combo that identifies the set
   hlib.httpRequest(opts)
     .then( data => {
       let rows = JSON.parse(data.response).rows
@@ -403,13 +411,15 @@ function updateAnswers() {
       rows.forEach(row => {
         let anno = hlib.parseAnnotation(row)
         let tags = anno.tags
+        // look for an annotation with a tag that matches one of the questions
         tags.forEach(tag => {
           if (questionKeys.indexOf(tag) != -1 ) {
             let questionKey = tag
             let _tags = anno.tags
+            // look for an answer tag in the tags for each matched annotation
             _tags.forEach(_tag => {
               if (_tag.indexOf('answer:') == 0) {
-                extractAnswer(_tag, questionKey, anno)
+                extractAnswer(_tag, questionKey, anno) // update the answers object with answer stored in the annotation's tag
               }
             })
           }
@@ -418,16 +428,16 @@ function updateAnswers() {
     return rows
     })
     .then ( (rows) => {
-      console.log('rows after update answers', rows)
+      console.log('rows after update answers', rows) 
       let lastAnsweredRepeatableKey = findLastAnsweredRepeatableQuestionKey()
       console.log('updateAnswers: lastAnsweredRepeatableKey', lastAnsweredRepeatableKey)
       let endSequence = hasEndSequenceTag(rows, lastAnsweredRepeatableKey)
       console.log('updateAnswers: hasEndSequenceTag', endSequence)
+      // look for the most recently-answered repeatable question that isn't tagged as end of sequence
       if (lastAnsweredRepeatableKey !== 'none' && ! endSequence) {
-        lastAnswer = questions[lastAnsweredRepeatableKey].answer
         let newQuestionKey = addRepeatQuestion(lastAnsweredRepeatableKey)
         console.log('added', newQuestionKey)
-        if (hasRepeatedAnswer(rows, newQuestionKey)) {
+        if (hasAnswer(rows, newQuestionKey)) {
             updateAnswers()
         } 
       }
@@ -441,6 +451,7 @@ function updateAnswers() {
     })
 }
 
+// assumes a question key of the form Qnn_mm, returns Qnn_mm+1
 function incrementQuestionKey(questionKey) {
   let str = questionKey.match(/_(\d+)/)[1]
   let num = parseInt(str)
@@ -454,6 +465,7 @@ function insertAfter(newQuestionKey, baseQuestionKey) {
   baseQuestionElement.parentNode.insertBefore(newQuestionElement, baseQuestionElement.nextSibling);
 }
 
+// clone and add a repeatable question
 function addRepeatQuestion(baseQuestionKey) {
   let baseQuestion = questions[baseQuestionKey]
   let newQuestionKey = incrementQuestionKey(baseQuestionKey)
@@ -487,7 +499,7 @@ function postAnswer() {
     if (question.newSelectionRequired && lastPostedSelection === appVars.SELECTION) {
       alert('new selection required')
       setTimeout( refreshUI, 500)
-      resolve()
+      resolve() // so, when called from the test harness, can continue with the next test
       return
     }
 
@@ -516,17 +528,17 @@ function postAnswer() {
 
     if (answer) {
       params.text = `<p><b>${title}</b></p><p><i>${question.question}</i></p>`
-      if ( question.type === 'radio' || question.type === 'checkbox') {
+      if ( type === 'radio' || type === 'checkbox') {
         let choices = JSON.stringify(question.choices, null, 2)
         params.text += `<p>Choices: <div>${choices}</div></p>`
       }
       params.tags.push(questionKey)
-      if ( question.type === 'textarea') {
+      if ( type === 'textarea') {
         // post answer in annotation body wrapped in [[ ]]
         params.text += `<p>Answer: [[${answer}]]</p>`
         // signal in a tag that the answer is in text
         params.tags.push('answer:text')
-      } else if (question.type === 'highlight') {
+      } else if (type === 'highlight') {
         params.tags.push('answer:annotation')
       } else {
         // include short answer codes, like 1.08.03, directly in a tag
@@ -538,7 +550,7 @@ function postAnswer() {
       hlib.postAnnotation(payload, token)
         .then( data => {
           setTimeout(reload, 1000)
-          resolve(JSON.stringify(data))
+          resolve(JSON.stringify(data)) // so tests can check the result
         })
     } else {
       alert('no answer')
@@ -562,13 +574,13 @@ function renderRadioQuestion(questionKey) {
   let html = questionBoilerplate(questionKey)
   let choices = question.choices
   choices.forEach(choice => {
-    let _choice = choice.split(':')
+    let _choice = choice.split(':') // example choice: '1.22.01:General causal claim'
     html += `
       <div class="choice">
         <input type="radio" name="${questionKey}" value="${_choice[0]}">  ${_choice[1]} 
       </div>`
   })
-  html += '</div>'
+  html += '\n</div>' // matches begin tag in questionBoilerplate
   hlib.getById('questions').innerHTML += html
 }
 
