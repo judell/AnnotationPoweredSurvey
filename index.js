@@ -166,6 +166,17 @@ function findFirstUnansweredQuestionKey() {
   return 'none'
 }
 
+function findLastAnsweredQuestionKey() {
+  let lastKey = 'none'
+  let questionKeys = getQuestionKeys()
+  questionKeys.forEach ( key => {
+    if (questions[key].answer) {
+      lastKey = key
+    }
+  })
+  return lastKey
+}
+
 function findLastAnsweredRepeatableQuestionKey() {
   let keys = getQuestionKeys()
   let repeatableKeys = keys.filter(k => {
@@ -188,6 +199,21 @@ function subdueAnsweredQuestions() {
   for (let i = 0; i < firstUnansweredIndex; i++) {
     let questionElement = hlib.getById(keys[i])
     questionElement.style.color = 'gray'
+  }
+}
+
+function hideInactiveRedoButtons() {
+  let keys = getQuestionKeys()
+  let lastAnsweredQuestionKey = findLastAnsweredQuestionKey()
+  for (let i = 0; i < keys.length; i++) {
+    let key = keys[i]
+    let questionElement = hlib.getById(key)
+    let redoButton = hlib.getById(key).querySelector('.redoButton')
+    if ( key === lastAnsweredQuestionKey ) {
+      redoButton.style.display = 'block'
+    } else {
+      redoButton.style.display = 'none'
+    }
   }
 }
 
@@ -299,6 +325,7 @@ function renderQuestion(question, key) {
   } else {
     console.log('unexpected question type')
   }
+  hlib.getById(key).innerHTML += '<button class="redoButton" onclick="redo()">redo</button>'
 }
 
 function renderQuestions() {
