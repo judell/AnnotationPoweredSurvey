@@ -126,15 +126,11 @@ function refreshUI() {
   console.log('refreshUI called')
   let paramsDiv = hlib.getById('params');
 
-  let clearSelectionButton = appVars.SELECTION  ? 
-    `<button onclick="clearSelection()">clear</button>`  : ''
-
   paramsDiv.innerHTML = `
      <p><b>Article</b>: <a href="${appVars.URL}">${appVars.URL}</a></p>
      <p>
        <b>Selection</b>: 
        "<span class="AnnotationSurveySelection">${appVars.SELECTION ? appVars.SELECTION : ""}</span>" 
-       ${clearSelectionButton}
      </p>`
 
   showOnlyAnsweredQuestions()
@@ -320,7 +316,7 @@ function endRepeat() {
   setEndSequenceTag()
 }
 
-// user pressed the continue button shown when a question is repeatable
+// user pressed the next-question button shown when a question is repeatable
 // mark the corresponding annotation as end-of-sequence
 function setEndSequenceTag() {
   let questionKey = findLastAnsweredRepeatableQuestionKey()
