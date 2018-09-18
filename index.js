@@ -24,7 +24,7 @@ if (! hlib.getToken()) {
 
 function groupChangeHandler() {
   hlib.setSelectedGroup()
-  reload()
+  softReload()
 }
 
 hlib.createGroupInputForm(hlib.getById('groupContainer'))
@@ -55,8 +55,12 @@ window.addEventListener('message', function(event) {
   }
 });
 
-function reload() {
+function softReload() {
   app(loadEvent)
+}
+
+function hardReload() {
+  location.href = location.href
 }
 
 function app(event) {
@@ -135,6 +139,8 @@ function refreshUI() {
 
   showOnlyAnsweredQuestions()
 
+  hideInactiveRedoButtons()
+
   let nextQuestionKey = showFirstUnansweredQuestion()
 
   if (nextQuestionKey === 'done') {
@@ -209,7 +215,7 @@ function hideInactiveRedoButtons() {
     let key = keys[i]
     let questionElement = hlib.getById(key)
     let redoButton = hlib.getById(key).querySelector('.redoButton')
-    if ( key === lastAnsweredQuestionKey ) {
+    if ( i > 0 && key === lastAnsweredQuestionKey ) {
       redoButton.style.display = 'block'
     } else {
       redoButton.style.display = 'none'
@@ -325,7 +331,7 @@ function renderQuestion(question, key) {
   } else {
     console.log('unexpected question type')
   }
-  hlib.getById(key).innerHTML += '<button class="redoButton" onclick="redo()">redo</button>'
+  hlib.getById(key).innerHTML += `<button class="redoButton" onclick="redoQuestion('${key}')">redo</button>`
 }
 
 function renderQuestions() {
@@ -369,7 +375,7 @@ function setEndSequenceTag() {
           let nextQuestionKey = incrementQuestionKey(questionKey)
           delete questions[nextQuestionKey]
           hlib.getById(nextQuestionKey).remove()
-          reload()
+          softReload()
         })
     })
 }
@@ -400,6 +406,7 @@ function hasAnswer(rows, questionKey) {
 // and save it in the questions object
 function extractAnswer(tag, questionKey, anno) {
   let question = questions[questionKey]
+  question.answerId = anno.id
   if (question.type === 'textarea') {
     // the answer was posted as a tag, answer:text, so use what's wrapped by [[ ]] in the annotations text element
     question.answer = anno.text.match('\\[\\[([^]+)\]\]')[1]   
@@ -572,13 +579,22 @@ function postAnswer() {
       let token = hlib.getToken()
       hlib.postAnnotation(payload, token)
         .then( data => {
-          setTimeout(reload, 1000)
+          setTimeout(softReload, 1000)
           resolve(JSON.stringify(data)) // so tests can check the result
         })
     } else {
       alert('no answer')
     }
   })
+}
+
+function redoQuestion(key) {
+  console.log(`'redoQuestion: ${key}`)
+  let answerId = questions[key].answerId
+  hlib.deleteAnnotation(answerId)
+    .then( _ => {
+      setTimeout(hardReload, 1000)
+    })
 }
 
 function clearViewer() {
@@ -701,5 +717,5 @@ function setHighlightVal(questionKey, val) {
 }
 
 const loadEvent = new MessageEvent('load', {})
-window.onload = reload()
+window.onload = softReload()
 
