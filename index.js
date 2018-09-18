@@ -213,12 +213,28 @@ function hideInactiveRedoButtons() {
   let lastAnsweredQuestionKey = findLastAnsweredQuestionKey()
   for (let i = 0; i < keys.length; i++) {
     let key = keys[i]
-    let questionElement = hlib.getById(key)
-    let redoButton = hlib.getById(key).querySelector('.redoButton')
+    let redoButton = hlib.getById(`redo_${key}`)
     if ( i > 0 && key === lastAnsweredQuestionKey ) {
       redoButton.style.display = 'block'
+      continue
     } else {
-      redoButton.style.display = 'none'
+    redoButton.style.display = 'none'
+    }
+  }
+}
+  
+function removeInactiveRedoButtons() {
+  let keys = getQuestionKeys()
+  let lastAnsweredQuestionKey = findLastAnsweredQuestionKey()
+  for (let i = 0; i < keys.length; i++) {
+    let key = keys[i]
+    let redoButton = hlib.getById(`redo_${key}`)
+    if ( i > 0 && key === lastAnsweredQuestionKey ) {
+      continue
+    } else {
+      if (redoButton) {
+        redoButton.remove()
+      }
     }
   }
 }
@@ -331,7 +347,7 @@ function renderQuestion(question, key) {
   } else {
     console.log('unexpected question type')
   }
-  hlib.getById(key).innerHTML += `<button class="redoButton" onclick="redoQuestion('${key}')">redo</button>`
+  hlib.getById(key).innerHTML += `<button id="redo_${key}" class="redoButton" onclick="redoQuestion('${key}')">redo</button>`
 }
 
 function renderQuestions() {

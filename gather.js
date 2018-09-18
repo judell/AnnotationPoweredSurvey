@@ -85,7 +85,9 @@ function gather() {
     activator.innerHTML = '<button title="send selection" onclick="gather()">send selection</button>'
     document.body.insertBefore(activator, document.body.firstChild)
     let opener = "width=700, height=900, toolbar=yes, top=-1000"
-    AnnotationSurveyWindow = window.open( `https://jonudell.info/h/CredCoContentAnnotation/index.html?url=${location.href}`, '_credco', opener)
+    //AnnotationSurveyWindow = window.open( `https://jonudell.info/h/CredCoContentAnnotation/index.html?url=${location.href}`, '_credco', opener)
+    AnnotationSurveyWindow = window.open( `http://10.0.0.9:8000/index.html?url=${location.href}`, '_credco', opener)
+    
   } else {
     AnnotationSurveyWindow.postMessage(params, '*') // talk to the app
     hlib.getById('activator').style.visibility = 'hidden'

@@ -98,7 +98,7 @@ div.message {
 <div class="buttons">
   <button id="postAnswerButton" onclick="postAnswer()">post answer</button> 
   <!--<button id="skipButton" onclick="postSkippedAnswer()">skip</button>-->
-  <button id="endRepeatButton" onclick="endRepeat()">continue</button>
+  <button id="endRepeatButton" onclick="endRepeat()">next question</button>
 </div>
 
 <p id="finished"></p>
@@ -421,6 +421,18 @@ tests({
       log('endRepeat')
     }, delay)
   })
+},
+
+'redoQuestion': function () {
+  return new Promise( resolve => {
+    redoQuestion()
+    setTimeout( () => {
+      eq(findFirstUnansweredQuestionKey(), 'Q09_01')
+      resolve()
+      log('redoQuestion')
+    }, delay)
+  })
+
 },
   
 'cleanup' : function() {

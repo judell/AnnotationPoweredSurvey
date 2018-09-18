@@ -59,9 +59,12 @@ const TinyTest = {
     testName = 'endRepeat'
     tests[testName]()
     .then ( () => {
+    testName = 'redoQuestion'
+    tests[testName]()
+    .then ( () => {
     testName = 'cleanup'
     tests[testName]()
-    }) }) }) }) }) }) }) }) }) }) }) }) })
+    }) }) }) }) }) }) }) }) }) }) }) }) }) })
 
   setTimeout(function() { // Give document a chance to complete
     if (window.document && document.body) {
