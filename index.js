@@ -59,20 +59,23 @@ function softReload() {
   app(loadEvent)
 }
 
-function hardReload() {
-  location.href = location.href
-}
-
 function app(event) {
-
-  appVars.URL = hlib.gup('url')
   
+  appVars.URL = hlib.gup('url')
+
   if (event.data && event.data.exact) {
     appVars.SELECTION = event.data.exact
     appVars.PREFIX = event.data.prefix
     appVars.START = event.data.start
     appVars.END = event.data.end
   } 
+
+  let selection = localStorage.getItem('h_selection')
+  if (selection) {
+    console.log('restoring and forgetting selection')
+    appVars.SELECTION = selection
+    localStorage.removeItem('h_selection')
+  }
 
   if (event.type === 'load') {
     console.log(event.type, event.data)
@@ -223,22 +226,6 @@ function hideInactiveRedoButtons() {
   }
 }
   
-function removeInactiveRedoButtons() {
-  let keys = getQuestionKeys()
-  let lastAnsweredQuestionKey = findLastAnsweredQuestionKey()
-  for (let i = 0; i < keys.length; i++) {
-    let key = keys[i]
-    let redoButton = hlib.getById(`redo_${key}`)
-    if ( i > 0 && key === lastAnsweredQuestionKey ) {
-      continue
-    } else {
-      if (redoButton) {
-        redoButton.remove()
-      }
-    }
-  }
-}
-
 function getQuestions() {
   return document.querySelectorAll('.question')
 }
@@ -347,7 +334,7 @@ function renderQuestion(question, key) {
   } else {
     console.log('unexpected question type')
   }
-  hlib.getById(key).innerHTML += `<button id="redo_${key}" class="redoButton" onclick="redoQuestion('${key}')">redo</button>`
+  hlib.getById(key).innerHTML += `<button title="redo this question" id="redo_${key}" class="redoButton" onclick="redoQuestion('${key}')">redo this question</button>`
 }
 
 function renderQuestions() {
@@ -424,7 +411,7 @@ function extractAnswer(tag, questionKey, anno) {
   let question = questions[questionKey]
   question.answerId = anno.id
   if (question.type === 'textarea') {
-    // the answer was posted as a tag, answer:text, so use what's wrapped by [[ ]] in the annotations text element
+    // the answer was posted as a tag, answer:text, so use what's wrapped by [[ ]] in the annotation's text element
     question.answer = anno.text.match('\\[\\[([^]+)\]\]')[1]   
   } else if (question.type === 'highlight') {
     // the answer was posted as a tag, answer:annotation, so use the annotation's URL
@@ -447,7 +434,8 @@ function updateAnswers() {
     },
   }
   // answers are stored in the annotation layer
-  // to fetch the set of answers for the current instance of the app, search for the url/tag/group combo that identifies the set
+  // to fetch the set of answers for the current instance of the app, 
+  // search for the url/tag/group combo that identifies the set
   hlib.httpRequest(opts)
     .then( data => {
       let rows = JSON.parse(data.response).rows
@@ -604,12 +592,17 @@ function postAnswer() {
   })
 }
 
+function redoReloader() {
+  localStorage.setItem('h_selection', appVars.SELECTION)
+  location.href = location.href
+}
+
 function redoQuestion(key) {
   console.log(`'redoQuestion: ${key}`)
   let answerId = questions[key].answerId
   hlib.deleteAnnotation(answerId)
     .then( _ => {
-      setTimeout(hardReload, 1000)
+      setTimeout(redoReloader, 1000)
     })
 }
 
