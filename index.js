@@ -210,7 +210,7 @@ function hideInactiveRedoButtons() {
   for (let i = 0; i < keys.length; i++) {
     let key = keys[i]
     let redoButton = hlib.getById(`redo_${key}`)
-    if ( i > 0 && key === lastAnsweredQuestionKey ) {
+    if ( redoButton && i > 0 && key === lastAnsweredQuestionKey ) {
       redoButton.style.display = 'block'
       continue
     } else {
@@ -327,7 +327,13 @@ function renderQuestion(question, key) {
   } else {
     console.log('unexpected question type')
   }
-  hlib.getById(key).innerHTML += `<button title="redo this question" id="redo_${key}" class="redoButton" onclick="redoQuestion('${key}')">redo this question</button>`
+  let redoButtonId = `redo_${key}`
+  if (! hlib.getById(redoButtonId)) {
+    hlib.getById(key).innerHTML += 
+      `<button title="redo this question" id="${redoButtonId}" 
+       class="redoButton" onclick="redoQuestion('${key}')">redo this question
+       </button>`
+  }
 }
 
 function renderQuestions() {
