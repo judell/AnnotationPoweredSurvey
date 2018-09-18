@@ -70,13 +70,6 @@ function app(event) {
     appVars.END = event.data.end
   } 
 
-  let selection = localStorage.getItem('h_selection')
-  if (selection) {
-    console.log('restoring and forgetting selection')
-    appVars.SELECTION = selection
-    localStorage.removeItem('h_selection')
-  }
-
   if (event.type === 'load') {
     console.log(event.type, event.data)
     renderQuestions()
@@ -592,8 +585,7 @@ function postAnswer() {
   })
 }
 
-function redoReloader() {
-  localStorage.setItem('h_selection', appVars.SELECTION)
+function hardReload() {
   location.href = location.href
 }
 
@@ -602,7 +594,7 @@ function redoQuestion(key) {
   let answerId = questions[key].answerId
   hlib.deleteAnnotation(answerId)
     .then( _ => {
-      setTimeout(redoReloader, 1000)
+      setTimeout(hardReload, 1000)
     })
 }
 
