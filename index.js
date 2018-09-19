@@ -592,7 +592,7 @@ function hardReload() {
 }
 
 function redoQuestion(key) {
-  console.log(`'redoQuestion: ${key}`)
+  console.log(`redoQuestion: ${key}`)
   let answerId = questions[key].answerId
   hlib.deleteAnnotation(answerId)
     .then( _ => {

@@ -409,7 +409,6 @@ tests({
     })
   },
 
-  
 'endRepeat': function() {
   return new Promise( resolve => {
     let questionKey = findFirstUnansweredQuestionKey()
@@ -418,6 +417,23 @@ tests({
       eq(findFirstUnansweredQuestionKey(), 'Q13')
       resolve()
       log('endRepeat')
+    }, delay)
+  })
+},
+
+'redoQuestion': function() {
+  var _hardReload = hardReload
+  hardReload = function() {
+    localStorage.setItem('h_hardReload', 'Q09_01')
+  }
+  return new Promise( (resolve) => {
+    redoQuestion('Q09_01')
+    setTimeout( () => {
+      eq(localStorage.getItem('h_hardReload'), 'Q09_01')
+      localStorage.removeItem('h_hardReload')
+      hardReload = _hardReload
+      resolve()
+      log('redoQuestion')
     }, delay)
   })
 },
