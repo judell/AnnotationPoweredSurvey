@@ -59,9 +59,6 @@ const TinyTest = {
     testName = 'endRepeat'
     tests[testName]()
     .then ( () => {
-    testName = 'redoQuestion'
-    tests[testName]()
-    .then ( () => {
     testName = 'cleanup'
     tests[testName]()
     }) }) }) }) }) }) }) }) }) }) }) }) }) })
