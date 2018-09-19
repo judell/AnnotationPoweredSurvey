@@ -375,7 +375,6 @@ tests({
 'postNinthAnswerWithUnchangedSelectionPopsAlert': function() {
   return new Promise( (resolve) => {
     let questionKey = findFirstUnansweredQuestionKey()
-    //appVars.SELECTION = 'The first paragraph'
     refreshUI()
     postAnswer()
       .then( _ => {
@@ -392,7 +391,7 @@ tests({
 'postNinthAnswerWithChangedSelection': function() {
   return new Promise( (resolve) => {
     let questionKey = findFirstUnansweredQuestionKey()
-    appVars.SELECTION = 'The first paragraph'
+    appVars.SELECTION = 'Expert #1'
     refreshUI()
     postAnswer()
       .then( (data) => {
@@ -423,18 +422,6 @@ tests({
   })
 },
 
-'redoQuestion': function () {
-  return new Promise( resolve => {
-    redoQuestion()
-    setTimeout( () => {
-      eq(findFirstUnansweredQuestionKey(), 'Q09_01')
-      resolve()
-      log('redoQuestion')
-    }, delay)
-  })
-
-},
-  
 'cleanup' : function() {
   return new Promise (resolve => {
     setTimeout( () => {
