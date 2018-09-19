@@ -347,13 +347,9 @@ function renderQuestions() {
   })
 }
 
-function endRepeat() {
-  setEndSequenceTag()
-}
-
 // user pressed the next-question button shown when a question is repeatable
 // mark the corresponding annotation as end-of-sequence
-function setEndSequenceTag() {
+function endRepeat() {
   let questionKey = findLastAnsweredRepeatableQuestionKey()
   let opts = {
     method: 'GET',
@@ -411,7 +407,7 @@ function extractAnswer(tag, questionKey, anno) {
   question.answerId = anno.id
   if (question.type === 'textarea') {
     // the answer was posted as a tag, answer:text, so use what's wrapped by [[ ]] in the annotation's text element
-    question.answer = anno.text.match('\\[\\[([^]+)\]\]')[1]   
+    question.answer = anno.text.match('\\[\\[([^]+)\]\]')[1] // find what's between [[ and ]]
   } else if (question.type === 'highlight') {
     // the answer was posted as a tag, answer:annotation, so use the annotation's URL
     question.answer = `https://hypothes.is/a/${anno.id}` // for storage
