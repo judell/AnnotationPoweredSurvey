@@ -95,7 +95,7 @@ function updatePriorQuestions() {
     } else if (question.type === 'textarea' && question.answer) {
       setTextAreaVal(questionKey, question.answer)
     } else if (question.type === 'highlight' && question.answer) {
-      setHighlightVal(questionKey, question.answer)
+      setHighlightVal(questionKey, question.answerQuote)
     }
     let questionElement = hlib.getById(questionKey)
     questionElement.style.display = 'block'
@@ -414,8 +414,8 @@ function extractAnswer(tag, questionKey, anno) {
     question.answer = anno.text.match('\\[\\[([^]+)\]\]')[1]   
   } else if (question.type === 'highlight') {
     // the answer was posted as a tag, answer:annotation, so use the annotation's URL
-    question.answer = `https://hypothes.is/a/${anno.id}`
-    setHighlightVal(questionKey, question.answer)
+    question.answer = `https://hypothes.is/a/${anno.id}` // for storage
+    question.answerQuote = anno.quote // for display
   } else {
     // the answer is in the tag
     question.answer = tag.replace('answer:','')
