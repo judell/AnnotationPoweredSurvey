@@ -67,7 +67,7 @@ Every question should have a `title` and a `question`. I added `prompt` initally
 
 ## Requiring a selection
 
-Use the `anchored` key
+Use the `anchored` key (the annotation will be anchored to the selection)
 
 ```
  'Q02' : {
@@ -79,6 +79,26 @@ Use the `anchored` key
     'anchored' : true,
   },
 ```
+
+## Requiring a new selection
+
+When consecutive questions relate to the same selection, a selection is remembered and carried forward. Use `newSelectionRequired` to require a new selection.
+
+```
+  'Q16_01': {
+    'type': 'highlight',
+    'title': 'Emotional valence',
+    'question': 'Highlight where any language is extremely negative or extremely positive',
+    'anchored': true,
+    'newSelectionRequired': true,
+    'requires': {
+      'target': 'Q16',
+      'oneOf': ['1.16.01', '1.16.02', '1.16.04', '1.16.05'],
+    },
+    'repeatable': true,
+  },
+``` 
+
 ## Conditional display of questions
 
 ### Display a question if a prior answer is one of a set of choices
@@ -180,11 +200,35 @@ Q09_02 requires that Q09_01 was answered
   },
 ```
 
-### Skip a question
+### Repeatable questions
 
-Q09_01 will only have been answered if Experts was a choice earlier. In that case, Expert source #1 will have an answer, and Q09_02 will be displayed. There may or may not be additional expert sources. The `canskip` directive on Q09_02 (and following) surfaces a Skip button.
+Given this setup, if the answer to Q15 is _yes_ or _sort of_, the user is prompted to make a new selection and provide that as the answer to Q15_01. The question then repeats, requiring a new selection each time, until the user clicks a `next question` button. 
 
-This method requires enumerating a set of skippable questions, e.g. for Expert sources #2, #3, etc. That's tedious and error-prone, and should probably be optimized away. Meanwhile, though it does have a possibly useful side effect: Skips are explicit user choices, recorded as such in the annotation layer. 
+```
+  'Q15': {
+    'type': 'radio',
+    'title': 'Acknowledgement of uncertainty',
+    'question': 'Does the author acknowledge uncertainty, or the possibility things might be otherwise?',
+    'choices': [
+      '1.15.01:Yes',
+      '1.15.02:Sort of',
+      '1.15.03:No',
+    ],
+    'anchored': false,
+  },
+  'Q15_01': {
+    'type': 'highlight',
+    'title': 'Acknowledgement of uncertainty',
+    'question': 'Highlight uncertainty example',
+    'anchored': true,
+    'newSelectionRequired': true,
+    'requires': {
+      'target': 'Q15',
+      'oneOf': ['1.15.01', '1.15.02'],
+    },
+    'repeatable': true,
+  },
+```  
 
 ## Exporting the data
 
@@ -192,15 +236,9 @@ Visit https://jonudell.info/h/facet/, select the appropriate group, click CSV.
 
 ## Notes
 
-The `requires` syntax includes only the minimum set of patterns implied by the CredCo questionnaire. The syntax will definitely need to evolve/improve/simplify as other patterns emerge.
+The `requires` syntax includes only the minimum set of patterns implied by the CredCo questionnaire. The syntax will likely need to evolve/improve/simplify as other patterns emerge.
 
-The app remembers the selection sent from the host page. That's convenient for this survey, which includes a series of questions whose answers want to anchor to the article's title. But if you proceed to a new question that requires a different selection, there isn't yet a mechanism to enforce that.  
-
-Question-writing is trickier and more verbose than it should be. If the basic approach pans out, it may be worth investing in tool support to validate the JSON, and perhaps provide a guided question-writing experience. But first things first, let's prove that the basic approach enables annotators to process articles quickly, painlessly, and accurately, and to reliably deposit answers into the annotation layer for use both as interactive overlay and source of structured data. 
-
-For the CredCo app, we assume that annotators will be placed into individual Hypothesis groups, each of which will also have the project coordinator as a member. That means the coordinator can <a href="https://jonudell.info/h/facet/">export</a> data from each of the per-annotator groups. It also means that we'd need to copy the data to the Public layer if/when that's desired. 
-
-It's possible to undo an answer by deleting the corresponding annotation, but you need to find the most recent one, which might be in Hypothesis' Annotations or Page Notes tab depending on whether it's anchored or not. It should be straightforward to provide an Undo button that obviates the need to find the most recent annotation.
+For the CredCo app, annotators will be placed into individual Hypothesis groups, each of which will also have the project coordinator as a member. That means the coordinator can <a href="https://jonudell.info/h/facet/">export</a> data from each of the per-annotator groups. It also means that we'd need to copy the data to the Public layer if/when that's desired. 
 
 If you close the app window during a survey, then relaunch from the bookmarlet, your prior context will be read from the annotation layer and restored. 
 
