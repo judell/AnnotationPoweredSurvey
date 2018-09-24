@@ -330,7 +330,7 @@ function renderQuestion(question, key) {
   let redoButtonId = `redo_${key}`
   if (! hlib.getById(redoButtonId)) {
     hlib.getById(key).innerHTML += 
-      `<button title="redo this question" id="${redoButtonId}" 
+      `<button id="${redoButtonId}"
        class="redoButton" onclick="redoQuestion('${key}')">redo this question
        </button>`
   }
