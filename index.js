@@ -338,7 +338,7 @@ function renderQuestions() {
 
 // user pressed the next-question button shown when a question is repeatable
 // mark the corresponding annotation as end-of-sequence
-function endRepeat() {
+async function endRepeat() {
   let questionKey = findLastAnsweredRepeatableQuestionKey()
   let opts = {
     method: 'GET',
@@ -348,23 +348,19 @@ function endRepeat() {
       'Content-Type': 'application/json;charset=utf-8'
     },
   }
-  hlib.httpRequest(opts)
-    .then( data => {
-      let anno = hlib.parseAnnotation(JSON.parse(data.response).rows[0])
-      let tags = anno.tags
-      tags.push('EndSequence')
-      let payload = {
+  let data = await hlib.httpRequest(opts)
+  const anno = hlib.parseAnnotation(JSON.parse(data.response).rows[0])
+  const tags = anno.tags
+  tags.push('EndSequence')
+  const payload = {
         tags : tags,
-      }
-      hlib.updateAnnotation(anno.id, hlib.getToken(), JSON.stringify(payload))
-        .then ( (data) => {
-          console.log(JSON.parse(data.response))
-          let nextQuestionKey = incrementQuestionKey(questionKey)
-          delete questions[nextQuestionKey]
-          hlib.getById(nextQuestionKey).remove()
-          softReload()
-        })
-    })
+  }
+  data = await hlib.updateAnnotation(anno.id, hlib.getToken(), JSON.stringify(payload))
+  console.log(JSON.parse(data.response))
+  const nextQuestionKey = incrementQuestionKey(questionKey)
+  delete questions[nextQuestionKey]
+  hlib.getById(nextQuestionKey).remove()
+  softReload()
 }
 
 // rows is the set of annotations returned from
@@ -424,7 +420,7 @@ function updateAnswers() {
     const data = await hlib.httpRequest(opts)
     const questionKeys = getQuestionKeys()
     const rows = JSON.parse(data.response).rows
-    console.log('updateAnswers got', rows.length)
+    //console.log('updateAnswers got', rows.length)
     rows.forEach(row => {
       const anno = hlib.parseAnnotation(row)
       const tags = anno.tags
@@ -442,11 +438,11 @@ function updateAnswers() {
         }
       })
     })
-    console.log('rows after update answers', rows) 
+    //console.log('rows after update answers', rows) 
     const lastAnsweredRepeatableKey = findLastAnsweredRepeatableQuestionKey()
-    console.log('updateAnswers: lastAnsweredRepeatableKey', lastAnsweredRepeatableKey)
+    //console.log('updateAnswers: lastAnsweredRepeatableKey', lastAnsweredRepeatableKey)
     const endSequence = hasEndSequenceTag(rows, lastAnsweredRepeatableKey)
-    console.log('updateAnswers: hasEndSequenceTag', endSequence)
+    //console.log('updateAnswers: hasEndSequenceTag', endSequence)
     // look for the most recently-answered repeatable question that isn't tagged as end of sequence
     if (lastAnsweredRepeatableKey !== 'none' && ! endSequence) {
       let newQuestionKey = addRepeatQuestion(lastAnsweredRepeatableKey)
@@ -710,8 +706,6 @@ async function boot() {
   let groupsList = hlib.getById('groupsList')
   groupsList.querySelectorAll('option')[0].remove() // suppress Public
   groupsList.setAttribute('onchange', 'groupChangeHandler()')
-  hlib.getById('postAnswerButton').setAttribute('onclick', 'postAnswer()')
-  hlib.getById('endRepeatButton').onclick = endRepeat
   softReload()
 }
 

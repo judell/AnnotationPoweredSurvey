@@ -98,8 +98,8 @@ div.message {
 <div id="questions"></div>
 
 <div class="buttons">
-  <button id="postAnswerButton">post answer</button> 
-  <button id="endRepeatButton">next question</button>
+  <button id="postAnswerButton" onclick="postAnswer()">post answer</button> 
+  <button id="endRepeatButton" onclick="endRepeat()">next question</button>
 </div>
 
 <p id="finished"></p>
@@ -139,6 +139,25 @@ async function waitSeconds(seconds) {
 function log(msg) {
   document.body.innerHTML += `<div class="logMessage">${msg}</div>`
 }
+
+async function cleanup() {
+  await waitSeconds(3)
+  const opts = {
+    method: 'GET',
+    url: `https://hypothes.is/api/search?group=${hlib.getSelectedGroup()}&limit=200`,
+    headers: {
+      Authorization: 'Bearer ' + hlib.getToken(),
+      'Content-Type': 'application/json;charset=utf-8'
+    }
+  }
+  const data = await hlib.httpRequest(opts)
+  const response  = JSON.parse(data.response)
+  response.rows.forEach(row => {
+    const r = hlib.deleteAnnotation(row.id)
+    console.log(r)
+  })
+}
+
 
 function allQuestionsAreRendered(resolve) {
   const allQuestions = Array.from(document.querySelectorAll('.question'))
@@ -270,34 +289,6 @@ tests({
   })
 },
 
-
-/*
-
-'cleanup' : function() {
-  return new Promise (resolve => {
-    async function runTest() {
-      await waitSeconds(3)
-      const opts = {
-        method: 'GET',
-        url: `https://hypothes.is/api/search?group=${hlib.getSelectedGroup()}&limit=200`,
-        headers: {
-          Authorization: 'Bearer ' + hlib.getToken(),
-          'Content-Type': 'application/json;charset=utf-8'
-        }
-      }
-      const data = await hlib.httpRequest(opts)
-      const response  = JSON.parse(data.response)
-      response.rows.forEach(row => {
-        const r = hlib.deleteAnnotation(row.id)
-        console.log(r)
-      })
-      softReload()
-      resolve()
-    }
-    runTest()
-  })
-},
-
 'second answer posted with no answer yields alert': function() {
   return new Promise( (resolve, reject) => {
     async function runTest() {
@@ -339,185 +330,153 @@ tests({
   })
 },
 
-'postThirdAnswer': function() {
+'third answer is posted': function() {
   return new Promise( resolve => {
-    let questionKey = findFirstUnansweredQuestionKey()
-    hlib.getById(questionKey).querySelectorAll('input')[0].checked = true
-    hlib.getById(questionKey).querySelectorAll('input')[6].checked = true
-    appVars.SELECTION = 'The title'
-    refreshUI()
-    postAnswer()
-      .then( (data) => {
-        let response = JSON.parse(data).response
-        let row = JSON.parse(response)
-        assert( row.tags.indexOf('answer:1.03.01, 1.03.07') != -1 )
-        setTimeout( () => {
-          eq(questions[questionKey].answer, '1.03.01, 1.03.07')
-          addIdToDelete(row.id)
-          resolve()
-        }, delay)
-      })
-      .finally ( _ => {
-        log('postThirdAnswer')
-      })
-    })
-  },
-
-'postFourthAnswer': function() {
-  return new Promise( resolve => {
-    let questionKey = findFirstUnansweredQuestionKey()
-    setTextAreaVal(questionKey, 'A very silly title')
-    postAnswer()
-      .then( (data) => {
-        let response = JSON.parse(data).response
-        let row = JSON.parse(response)
-        assert( row.tags.indexOf('answer:text') != -1 )
-        setTimeout( () => {
-          eq(questions[questionKey].answer, 'A very silly title')
-          addIdToDelete(row.id)
-          resolve()
-        }, delay)
-      })
-      .finally ( _ => {
-        log('postFourthAnswer')
-      })
-    })
-  }, 
-
-'postFifthAnswer': function() {
-  return new Promise( resolve => {
-    let questionKey = findFirstUnansweredQuestionKey()
-    hlib.getById(questionKey).querySelectorAll('input')[3].checked = true
-    postAnswer()
-      .then( (data) => {
-        let response = JSON.parse(data).response
-        let row = JSON.parse(response)
-        assert( row.tags.indexOf('answer:1.04.04') != -1 )
-        setTimeout( () => {
-          eq(questions[questionKey].answer, '1.04.04')
-          addIdToDelete(row.id)
-          resolve()
-        }, delay)
-      })
-      .finally ( _ => {
-        log('postFifthAnswer')
-      })
-    })
-  }, 
-
-'postSixthAnswer': function() {
-  return new Promise( resolve => {
-    let questionKey = findFirstUnansweredQuestionKey()
-    hlib.getById(questionKey).querySelectorAll('input')[1].checked = true
-    postAnswer()
-      .then( (data) => {
-        let response = JSON.parse(data).response
-        let row = JSON.parse(response)
-        assert( row.tags.indexOf('answer:1.07.02') != -1 )
-        setTimeout( () => {
-          eq(questions[questionKey].answer, '1.07.02')
-          addIdToDelete(row.id)
-          resolve()
-        }, delay)
-      })
-      .finally ( _ => {
-        log('postSixthAnswer')
-      })
-    })
-  }, 
-
-'postSeventhAnswer': function() {
-  return new Promise( resolve => {
-    let questionKey = findFirstUnansweredQuestionKey()
-    hlib.getById(questionKey).querySelectorAll('input')[0].checked = true
-    postAnswer()
-      .then( (data) => {
-        let response = JSON.parse(data).response
-        let row = JSON.parse(response)
-        assert( row.tags.indexOf('answer:1.08a.01') != -1 )
-        setTimeout( () => {
-          eq(questions[questionKey].answer, '1.08a.01')
-          addIdToDelete(row.id)
-          resolve()
-        }, delay)
-      })
-      .finally ( _ => {
-        log('postSeventhAnswer')
-      })
-    })
-  },
-
-'postEighthAnswer': function() {
-  return new Promise( resolve => {
-    let questionKey = findFirstUnansweredQuestionKey()
-    hlib.getById(questionKey).querySelectorAll('input')[0].checked = true
-    postAnswer()
-      .then( (data) => {
-        let response = JSON.parse(data).response
-        let row = JSON.parse(response)
-        assert( row.tags.indexOf('answer:1.08.01') != -1 )
-        setTimeout( () => {
-          eq(questions[questionKey].answer, '1.08.01')
-          addIdToDelete(row.id)
-          resolve()
-        }, delay)
-      })
-      .finally ( _ => {
-        log('postEighthAnswer')
-      })
-    })
-  }, 
-
-'postNinthAnswerWithUnchangedSelectionPopsAlert': function() {
-  return new Promise( (resolve) => {
-    let questionKey = findFirstUnansweredQuestionKey()
-    refreshUI()
-    postAnswer()
-      .then( _ => {
-        eq(localStorage.getItem('h_alert'), 'new selection required')
-        delete localStorage.h_alert
-        resolve()
-      })
-      .finally ( _ => {
-        log('postNinthAnswerWithUnchangedSelection')
-      })
-    })
-  },
-
-'postNinthAnswerWithChangedSelection': function() {
-  return new Promise( (resolve) => {
-    let questionKey = findFirstUnansweredQuestionKey()
-    appVars.SELECTION = 'Expert #1'
-    refreshUI()
-    postAnswer()
-      .then( (data) => {
-        let response = JSON.parse(data).response
-        let row = JSON.parse(response)
-        assert( row.tags.indexOf('answer:annotation') != -1 )
-        setTimeout( () => {
-          addIdToDelete(row.id)
-          resolve()
-        }, delay)
-      })
-      .finally ( _ => {
-        log('postNinthAnswerWithChangedSelection')
-      })
-    })
-  },
-
-'endRepeat': function() {
-  return new Promise( resolve => {
-    let questionKey = findFirstUnansweredQuestionKey()
-    endRepeat()
-    setTimeout( () => {
-      eq(findFirstUnansweredQuestionKey(), 'Q13')
+    async function runTest() {
+      const questionKey = findFirstUnansweredQuestionKey()
+      hlib.getById(questionKey).querySelectorAll('input')[0].checked = true
+      hlib.getById(questionKey).querySelectorAll('input')[6].checked = true
+      appVars.SELECTION = 'The title'
+      hlib.getById('postAnswerButton').click()
+      await waitSeconds(3)
+      eq('1.03.01, 1.03.07', questions[questionKey].answer)
       resolve()
-      log('endRepeat')
-    }, delay)
+    }
+    runTest()
   })
 },
 
-*/
+'fourth answer is posted': function() {
+  return new Promise( resolve => {
+    async function runTest() {
+      const questionKey = findFirstUnansweredQuestionKey()
+      setTextAreaVal(questionKey, 'A very silly title')
+      hlib.getById('postAnswerButton').click()
+      await waitSeconds(3)
+      eq('A very silly title', questions[questionKey].answer)
+      resolve()
+    }
+    runTest()
+  })
+},
+
+'fifth answer is posted': function() {
+  return new Promise( resolve => {
+    async function runTest() {
+      const questionKey = findFirstUnansweredQuestionKey()
+      hlib.getById(questionKey).querySelectorAll('input')[3].checked = true
+      hlib.getById('postAnswerButton').click()
+      await waitSeconds(3)
+      eq('1.04.04', questions[questionKey].answer)
+      resolve()
+    }
+    runTest()
+  })
+},
+
+'sixth answer is posted': function() {
+  return new Promise( resolve => {
+    async function runTest() {
+      const questionKey = findFirstUnansweredQuestionKey()
+      hlib.getById(questionKey).querySelectorAll('input')[1].checked = true
+      hlib.getById('postAnswerButton').click()
+      await waitSeconds(3)
+      eq('1.07.02', questions[questionKey].answer)
+      resolve()
+    }
+    runTest()
+  })
+},
+
+'seventh answer is posted': function() {
+  return new Promise( resolve => {
+    async function runTest() {
+      const questionKey = findFirstUnansweredQuestionKey()
+      hlib.getById(questionKey).querySelectorAll('input')[0].checked = true
+      hlib.getById('postAnswerButton').click()
+      await waitSeconds(3)
+      eq('1.08a.01', questions[questionKey].answer)
+      resolve()
+    }
+    runTest()
+  })
+},
+
+'eighth answer is posted': function() {
+  return new Promise( resolve => {
+    async function runTest() {
+      let questionKey = findFirstUnansweredQuestionKey()
+      hlib.getById(questionKey).querySelectorAll('input')[0].checked = true
+      hlib.getById('postAnswerButton').click()
+      await waitSeconds(3)
+      eq('1.08.01', questions[questionKey].answer)
+      resolve()
+    }
+    runTest()
+  })
+},
+
+'ninth answer posted with unchanged selection pops alert': function() {
+  return new Promise( resolve => {
+    async function runTest() {
+      localStorage.setItem('h_alert', '')
+      const questionKey = findFirstUnansweredQuestionKey()
+      hlib.getById('postAnswerButton').click()
+      await waitSeconds(3)
+      eq('new selection required', localStorage.getItem('h_alert'))
+      resolve()
+    }
+    runTest()
+  })
+},
+
+'ninth answer posted with changed selection': function() {
+  return new Promise( (resolve) => {
+    async function runTest() {
+      const questionKey = findFirstUnansweredQuestionKey()
+      appVars.SELECTION = 'Expert #1'
+      hlib.getById('postAnswerButton').click()
+      await waitSeconds(3)
+      assert(questions[questionKey].answer.startsWith('https://hypothes.is/a/'))
+      assert(questions[questionKey].answerQuote.indexOf(`<span title="exact quote" 
+        class="quoteExact">Expert #1</span>` > 0))
+      resolve()
+    }
+    runTest()
+  })
+},
+
+'ninth answer invoked repeat': function() {
+  return new Promise( (resolve) => {
+    const repeatedQuestion = hlib.getById('Q09_02')
+    assert(repeatedQuestion)
+    const title = repeatedQuestion.querySelector('h2').innerText
+    eq('Expert sources*', title)
+    const subtitle = repeatedQuestion.querySelector('h3').innerText
+    eq('Highlight expert source', subtitle)
+    resolve()
+  })
+},
+
+'next question button ends repeat': function() {
+  return new Promise( resolve => {
+    async function runTest() {
+      hlib.getById('endRepeatButton').click()
+      await waitSeconds(3)
+      eq('Q13', findFirstUnansweredQuestionKey())
+      resolve()
+    }
+    runTest()
+  })
+},
+
+'cleanup' : function() {
+  return new Promise (resolve => {
+    cleanup()
+    softReload()
+    resolve()
+  })
+},
 
 }) 
 
