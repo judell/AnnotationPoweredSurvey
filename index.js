@@ -14,26 +14,16 @@ let lastPostedSelection = ''
 
 const appWindowName = 'AnnotationSurvey'
 
-const AnnotationSurveyTag = 'AnnotationSurveyCredCo'
+const AnnotationSurveyTag = 'AnnotationSurveyTest'
+
+const loadEvent = new MessageEvent('load', {})
 
 // display login fields only if needed
-if (! hlib.getToken()) {
-  hlib.createApiTokenInputForm(hlib.getById('tokenContainer'))
-  hlib.createUserInputForm(hlib.getById('userContainer'))
-}
 
 function groupChangeHandler() {
   hlib.setSelectedGroup()
   softReload()
 }
-
-hlib.createGroupInputForm(hlib.getById('groupContainer'))
-setTimeout( () => {
-  let groupsList = hlib.getById('groupsList')
-  groupsList.querySelectorAll('option')[0].remove()
-  hlib.setSelectedGroup()
-  groupsList.setAttribute('onchange', 'groupChangeHandler()')
-  }, 1000)
 
 function hasNewMessageData(event) {
   let _data = JSON.stringify(event.data)
@@ -59,7 +49,7 @@ function softReload() {
   app(loadEvent)
 }
 
-function app(event) {
+async function app(event) {
   
   appVars.URL = hlib.gup('url')
 
@@ -78,7 +68,7 @@ function app(event) {
   if (event.type === 'load' || hasNewMessageData(event)) {
     console.log(event.type, event.data)
     // fetch answers from annotation layer, deposit in the `questions` object
-    updateAnswers()
+    await updateAnswers()
   }
 
 }
@@ -115,8 +105,8 @@ function getApiBaseParamsForAnnotation() {
 // get base params for an annotation with no selectors
 function getApiBaseParamsForPageNote() {
   return {
-    group: hlib.getGroup(),
-    username: hlib.getUser(),
+    group: hlib.getSelectedGroup(),
+    username: hlib.getSettings().user,
     uri: appVars.URL,
     tags: [AnnotationSurveyTag],
   }
@@ -210,7 +200,7 @@ function hideInactiveRedoButtons() {
   for (let i = 0; i < keys.length; i++) {
     let key = keys[i]
     let redoButton = hlib.getById(`redo_${key}`)
-    if ( redoButton && i > 0 && key === lastAnsweredQuestionKey ) {
+    if ( redoButton && key === lastAnsweredQuestionKey ) {
       redoButton.style.display = 'block'
       continue
     } else {
@@ -287,7 +277,6 @@ function showFirstUnansweredQuestion() {
     return 'done'
   }
   
-  let question = questions[questionKey]
   let questionElement = hlib.getById(questionKey)
 
   if (! shouldShow(questionKey)) {
@@ -353,7 +342,7 @@ function endRepeat() {
   let questionKey = findLastAnsweredRepeatableQuestionKey()
   let opts = {
     method: 'GET',
-    url: `https://hypothes.is/api/search?group=${hlib.getGroup()}&tags=${questionKey}`,
+    url: `https://hypothes.is/api/search?group=${hlib.getSelectedGroup()}&tags=${questionKey}`,
     headers: {
       Authorization: 'Bearer ' + hlib.getToken(),
       'Content-Type': 'application/json;charset=utf-8'
@@ -419,66 +408,65 @@ function extractAnswer(tag, questionKey, anno) {
 }
 
 function updateAnswers() {
-  console.log('updateAnswers called')
-  let opts = {
-    method: 'GET',
-    url: `https://hypothes.is/api/search?uri=${appVars.URL}&tags=${AnnotationSurveyTag}&group=${hlib.getGroup()}&limit=200`,
-    headers: {
-      Authorization: 'Bearer ' + hlib.getToken(),
-      'Content-Type': 'application/json;charset=utf-8'
-    },
-  }
-  // answers are stored in the annotation layer
-  // to fetch the set of answers for the current instance of the app, 
-  // search for the url/tag/group combo that identifies the set
-  hlib.httpRequest(opts)
-    .then( data => {
-      let rows = JSON.parse(data.response).rows
-      console.log('updateAnswers got', rows.length)
-      let output = `<p>${rows.length} annotations</p>`
-      let questionKeys = getQuestionKeys()
-      rows.forEach(row => {
-        let anno = hlib.parseAnnotation(row)
-        let tags = anno.tags
-        // look for an annotation with a tag that matches one of the questions
-        tags.forEach(tag => {
-          if (questionKeys.indexOf(tag) != -1 ) {
-            let questionKey = tag
-            let _tags = anno.tags
-            // look for an answer tag in the tags for each matched annotation
-            _tags.forEach(_tag => {
-              if (_tag.indexOf('answer:') == 0) {
-                extractAnswer(_tag, questionKey, anno) // update the answers object with answer stored in the annotation's tag
-              }
-            })
-          }
-        })
+  async function worker() {
+    console.log('updateAnswers called')
+    let opts = {
+      method: 'GET',
+      url: `https://hypothes.is/api/search?uri=${appVars.URL}&tags=${AnnotationSurveyTag}&group=${hlib.getSelectedGroup()}&limit=200`,
+      headers: {
+        Authorization: 'Bearer ' + hlib.getToken(),
+        'Content-Type': 'application/json;charset=utf-8'
+      },
+    }
+    // answers are stored in the annotation layer
+    // to fetch the set of answers for the current instance of the app, 
+    // search for the url/tag/group combo that identifies the set
+    const data = await hlib.httpRequest(opts)
+    const questionKeys = getQuestionKeys()
+    const rows = JSON.parse(data.response).rows
+    console.log('updateAnswers got', rows.length)
+    rows.forEach(row => {
+      const anno = hlib.parseAnnotation(row)
+      const tags = anno.tags
+      // look for an annotation with a tag that matches one of the questions
+      tags.forEach(tag => {
+        if (questionKeys.indexOf(tag) != -1 ) {
+          let questionKey = tag
+          let _tags = anno.tags
+          // look for an answer tag in the tags for each matched annotation
+          _tags.forEach(_tag => {
+            if (_tag.indexOf('answer:') == 0) {
+              extractAnswer(_tag, questionKey, anno) // update the answers object with answer stored in the annotation's tag
+            }
+          })
+        }
       })
-    return rows
     })
-    .then ( (rows) => {
-      console.log('rows after update answers', rows) 
-      let lastAnsweredRepeatableKey = findLastAnsweredRepeatableQuestionKey()
-      console.log('updateAnswers: lastAnsweredRepeatableKey', lastAnsweredRepeatableKey)
-      let endSequence = hasEndSequenceTag(rows, lastAnsweredRepeatableKey)
-      console.log('updateAnswers: hasEndSequenceTag', endSequence)
-      // look for the most recently-answered repeatable question that isn't tagged as end of sequence
-      if (lastAnsweredRepeatableKey !== 'none' && ! endSequence) {
-        let newQuestionKey = addRepeatQuestion(lastAnsweredRepeatableKey)
-        console.log('added', newQuestionKey)
-        if (hasAnswer(rows, newQuestionKey)) {
-            updateAnswers()
-        } 
-      }
-      else {
-        hlib.getById('endRepeatButton').style.display = 'none'
-        console.log('at end of sequence', lastAnsweredRepeatableKey)
-      }        
-      console.log( 'calling updatePriorQuestions and refreshUI after updateAnswers')    
-      updatePriorQuestions()
-      refreshUI()
-    })
+    console.log('rows after update answers', rows) 
+    const lastAnsweredRepeatableKey = findLastAnsweredRepeatableQuestionKey()
+    console.log('updateAnswers: lastAnsweredRepeatableKey', lastAnsweredRepeatableKey)
+    const endSequence = hasEndSequenceTag(rows, lastAnsweredRepeatableKey)
+    console.log('updateAnswers: hasEndSequenceTag', endSequence)
+    // look for the most recently-answered repeatable question that isn't tagged as end of sequence
+    if (lastAnsweredRepeatableKey !== 'none' && ! endSequence) {
+      let newQuestionKey = addRepeatQuestion(lastAnsweredRepeatableKey)
+      console.log('added', newQuestionKey)
+      if (hasAnswer(rows, newQuestionKey)) {
+        updateAnswers()
+      } 
+    }
+    else {
+      hlib.getById('endRepeatButton').style.display = 'none'
+      console.log('at end of sequence', lastAnsweredRepeatableKey)
+    }        
+    console.log( 'calling updatePriorQuestions and refreshUI after updateAnswers')    
+    updatePriorQuestions()
+    refreshUI()
+    return Promise.resolve()
+  }
+  worker()
 }
+
 
 // assumes a question key of the form Qnn_mm, returns Qnn_mm+1
 function incrementQuestionKey(questionKey) {
@@ -510,80 +498,71 @@ function addRepeatQuestion(baseQuestionKey) {
   
 function postAnswer() {
   return new Promise( (resolve) => {
-    if (! hlib.getToken()) {
-      alert('Please provide your Hypothesis username and API token, then retry.')
-      return
-    }
-
-    let questionKey = findFirstUnansweredQuestionKey()
-
-    let question = questions[questionKey]
-
-    if (question.anchored && ! appVars.SELECTION) {
-      alert('selection required')
-      setTimeout( refreshUI, 500)
-      return
-    }
-
-    if (question.newSelectionRequired && lastPostedSelection === appVars.SELECTION) {
-      alert('new selection required')
-      setTimeout( refreshUI, 500)
-      resolve() // so, when called from the test harness, can continue with the next test
-      return
-    }
-
-    let params
-    if (question.anchored) {
-      lastPostedSelection = appVars.SELECTION
-      params = getApiBaseParamsForAnnotation()
-    } else {
-      params = getApiBaseParamsForPageNote()
-    }
-    
-    const type = question.type
-    const title = question.title
-    
-    var answer
-
-    if (type === 'radio') {
-      answer = getRadioVal(questionKey)
-    } else if (type === 'checkbox') {
-      answer = getCheckboxVals(questionKey)
-    } else if (type === 'textarea') {
-      answer = getTextAreaVal(questionKey)
-    } else if (type === 'highlight') {
-      answer = getHighlightVal(questionKey)
-    }
-
-    if (answer) {
-      params.text = `<p><b>${title}</b></p><p><i>${question.question}</i></p>`
-      if ( type === 'radio' || type === 'checkbox') {
-        let choices = JSON.stringify(question.choices, null, 2)
-        params.text += `<p>Choices: <div>${choices}</div></p>`
+    async function worker() {
+      if (! hlib.getToken()) {
+        alert('Please provide your Hypothesis username and API token, then retry.')
+        return
       }
-      params.tags.push(questionKey)
-      if ( type === 'textarea') {
-        // post answer in annotation body wrapped in [[ ]]
-        params.text += `<p>Answer: [[${answer}]]</p>`
-        // signal in a tag that the answer is in text
-        params.tags.push('answer:text')
-      } else if (type === 'highlight') {
-        params.tags.push('answer:annotation')
+      const questionKey = findFirstUnansweredQuestionKey()
+      const question = questions[questionKey]
+      if (question.anchored && ! appVars.SELECTION) {
+        alert('selection required')
+        setTimeout( refreshUI, 500)
+        return
+      }
+      if (question.newSelectionRequired && lastPostedSelection === appVars.SELECTION) {
+        alert('new selection required')
+        setTimeout( refreshUI, 500)
+        resolve() // so, when called from the test harness, can continue with the next test
+        return
+      }
+      let params
+      if (question.anchored) {
+        lastPostedSelection = appVars.SELECTION
+        params = getApiBaseParamsForAnnotation()
       } else {
-        // include short answer codes, like 1.08.03, directly in a tag
-        params.tags.push('answer:' + answer)
+        params = getApiBaseParamsForPageNote()
       }
-      console.log(params)
-      let payload = hlib.createAnnotationPayload(params)
-      let token = hlib.getToken()
-      hlib.postAnnotation(payload, token)
-        .then( data => {
-          setTimeout(softReload, 1000)
-          resolve(JSON.stringify(data)) // so tests can check the result
-        })
-    } else {
-      alert('no answer')
+      const type = question.type
+      const title = question.title
+      let answer
+      if (type === 'radio') {
+        answer = getRadioVal(questionKey)
+      } else if (type === 'checkbox') {
+        answer = getCheckboxVals(questionKey)
+      } else if (type === 'textarea') {
+        answer = getTextAreaVal(questionKey)
+      } else if (type === 'highlight') {
+        answer = getHighlightVal(questionKey)
+      }
+      if (answer) {
+        params.text = `<p><b>${title}</b></p><p><i>${question.question}</i></p>`
+        if ( type === 'radio' || type === 'checkbox') {
+          let choices = JSON.stringify(question.choices, null, 2)
+          params.text += `<p>Choices: <div>${choices}</div></p>`
+        }
+        params.tags.push(questionKey)
+        if ( type === 'textarea') {
+          // post answer in annotation body wrapped in [[ ]]
+          params.text += `<p>Answer: [[${answer}]]</p>`
+          // signal in a tag that the answer is in text
+          params.tags.push('answer:text')
+        } else if (type === 'highlight') {
+          params.tags.push('answer:annotation')
+        } else {
+          // include short answer codes, like 1.08.03, directly in a tag
+          params.tags.push('answer:' + answer)
+        }
+        console.log(params)
+        const payload = hlib.createAnnotationPayload(params)
+        const data = await hlib.postAnnotation(payload, hlib.getToken())
+        setTimeout( softReload, 2000 )
+        resolve()
+      } else {
+        alert('no answer')
+      }
     }
+  worker()
   })
 }
 
@@ -591,13 +570,16 @@ function hardReload() {
   location.href = location.href
 }
 
-function redoQuestion(key) {
+async function redoQuestion(key) {
   console.log(`redoQuestion: ${key}`)
   let answerId = questions[key].answerId
-  hlib.deleteAnnotation(answerId)
-    .then( _ => {
-      setTimeout(hardReload, 1000)
-    })
+  await hlib.deleteAnnotation(answerId)
+  delete questions[key].answer
+  delete questions[key].answerId
+  hlib.getById('questions').innerHTML = ''
+  await waitSeconds(1)
+  renderQuestions()
+  softReload()
 }
 
 function clearViewer() {
@@ -719,6 +701,19 @@ function setHighlightVal(questionKey, val) {
   document.getElementsByName(questionKey)[0].innerHTML = val
 }
 
-const loadEvent = new MessageEvent('load', {})
-window.onload = softReload()
+async function boot() {
+  if (! hlib.getToken()) {
+    hlib.createApiTokenInputForm(hlib.getById('tokenContainer'))
+    hlib.createUserInputForm(hlib.getById('userContainer'))
+  }
+  await hlib.createGroupInputForm(hlib.getById('groupContainer'))
+  let groupsList = hlib.getById('groupsList')
+  groupsList.querySelectorAll('option')[0].remove() // suppress Public
+  groupsList.setAttribute('onchange', 'groupChangeHandler()')
+  hlib.getById('postAnswerButton').setAttribute('onclick', 'postAnswer()')
+  hlib.getById('endRepeatButton').onclick = endRepeat
+  softReload()
+}
+
+window.onload = boot
 

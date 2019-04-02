@@ -2,7 +2,7 @@
 <head>
 <title>AnnotationSurvey Content Annotation</title>
 <link rel="stylesheet" href="https://jonudell.info/hlib/hlib.css" />
-<script src="https://jonudell.info/hlib/hlib.bundle.js"></script>
+<script src="http://10.0.0.9:8000/hlib2.bundle.js"></script>
 <script src="https://jonudell.info/hlib/showdown.js"></script>
 <script src="questions.js"></script>
 <script async src="index.js"></script>
@@ -14,6 +14,8 @@ body {
   word-break: break-word;
   margin-top:.25in;
   width: 65%;
+  background-color: lightgreen;
+ 
  }  
  li {
    margin-bottom: 1em;
@@ -96,9 +98,8 @@ div.message {
 <div id="questions"></div>
 
 <div class="buttons">
-  <button id="postAnswerButton" onclick="postAnswer()">post answer</button> 
-  <!--<button id="skipButton" onclick="postSkippedAnswer()">skip</button>-->
-  <button id="endRepeatButton" onclick="endRepeat()">next question</button>
+  <button id="postAnswerButton">post answer</button> 
+  <button id="endRepeatButton">next question</button>
 </div>
 
 <p id="finished"></p>
@@ -112,59 +113,13 @@ div.message {
 }
 </script>
 
-<script type="module">  
+<script type="module">
 
-function appendBody(element) {
-  document.body.appendChild(element)
-}
-
-function createGroupContainer() {
-  let groupContainer = document.createElement('div');
-  groupContainer.id = 'groupContainer';
-  document.body.append(groupContainer);
-  return groupContainer;
-}
-
-function removeGroupContainer() {
-  let groupContainer = hlib.getById('groupContainer')
-  if (groupContainer) {
-    groupContainer.remove()
-  }
-}
-
-function initIdsToDelete() {
-  localStorage.setItem('idsToDelete',null)
-}
-
-function saveIdsToDelete(idsToDelete) {
-  localStorage.setItem('idsToDelete', JSON.stringify(idsToDelete))
-}
-
-function getIdsToDelete() {
-  return JSON.parse(localStorage.getItem('idsToDelete'))
-}
-
-function addIdToDelete(id) {
-  let idsToDelete = getIdsToDelete()
-  if (! idsToDelete) {
-    idsToDelete = []
-  }
-  idsToDelete.push(id)
-  saveIdsToDelete(idsToDelete)
-}
-
-function deleteTestAnnotation(rowId) {
-  addIdToDelete(rowId)
+async function deleteTestAnnotation(rowId) {
   let token = hlib.getToken()
-  try {	
-    assert(rowId)
-    hlib.deleteAnnotation(rowId, token)
-     .then(data => {
-        console.log('deleted test annotation', data)
-     })
-  } catch(e) {
-    throw(e)
-  }
+  assert(rowId)
+  const data = await hlib.deleteAnnotation(rowId, token)
+  console.log('deleted test annotation', data)
 }
 
 function clearAnswers() {
@@ -174,74 +129,215 @@ function clearAnswers() {
   })
 }
 
+async function waitSeconds(seconds) {
+  function delay(seconds) {
+    return new Promise(resolve => setTimeout(resolve, seconds * 1000))
+  }
+  await delay(seconds)
+}
+
 function log(msg) {
   document.body.innerHTML += `<div class="logMessage">${msg}</div>`
 }
 
-let delay = 3000
+function allQuestionsAreRendered(resolve) {
+  const allQuestions = Array.from(document.querySelectorAll('.question'))
+    eq(23, allQuestions.length)
+    const firstQuestion = allQuestions[0]
+    const firstQuestionChoices = Array.from(firstQuestion.querySelectorAll('.choice'))
+    eq(5, firstQuestionChoices.length)
+    eq('1.01.05', firstQuestionChoices[4].querySelector('input').value)
+    const lastQuestion = allQuestions.slice(-1)[0]
+    const title = lastQuestion.querySelector('h2').innerText
+    eq('Exaggerated/minimized claims*', title)
+    resolve()
+}
 
-tests({ 
+function firstQuestionIsDisplayed(resolve) {
+  const question = hlib.getById('Q01')
+    const title = question.querySelector('h2').innerText
+    eq('Overall Credibility', title)
+    eq('block', question.style.display)
+    resolve()
+}
 
-'init'  : function () {
+async function firstAnswerIsPosted(resolve) {
+  const questionKey = findFirstUnansweredQuestionKey()
+  hlib.getById(questionKey).querySelector('input').checked = true
+  hlib.getById('postAnswerButton').click()
+  await waitSeconds(3)
+  eq('1.01.01', questions['Q01'].answer)
+  eq('1.01.01', getRadioVal('Q01'))
+  resolve()
+}
+
+function secondAnswerIsRendered(resolve) {
+  const question = hlib.getById('Q02')
+  const title = question.querySelector('h2').innerText
+  eq('Title Representativeness*', title)
+  const subtitle = question.querySelector('h3').innerText
+  eq('Does the title of the article accurately reflect the content of the article?', subtitle)
+  resolve()
+}
+
+tests({
+
+'gets token': function () {
+  return new Promise( (resolve, reject) => {
+    let token = hlib.getToken()
+    let slice = token.slice(0,9)
+    eq('6879-358c', slice)
+    resolve()
+  })
+ },
+
+ 'public group is gone and test group is selected' : function () {
   return new Promise( resolve => {
-    initIdsToDelete()
-    setTimeout( () => {
+    async function runTest() {
+      await waitSeconds(2)
+      const options = Array.from(hlib.getById('groupsList').options)
+      options.forEach (option => {
+        if (option.value === testGroup) {
+          option.selected = true
+        }
+      })
+      const firstGroupValue = hlib.getById('groupsList').querySelectorAll('option')[0].value
+      assertNotEquals (firstGroupValue, '__world__')
+      eq( testGroup, hlib.getSelectedGroup() )
       resolve()
-     }, delay)
+    }
+    runTest()
   })
 },
 
-'publicGroupIsGone' : function() {
+'all questions are rendered' : function () {
   return new Promise( resolve => {
-    let firstGroupValue = hlib.getById('groupsList').querySelectorAll('option')[0].value
-    assertNotEquals (firstGroupValue, '__world__')
+    allQuestionsAreRendered(resolve)
+  })
+},
+
+'first question is displayed' : function () {
+  return new Promise( resolve => {
+    firstQuestionIsDisplayed(resolve)
+  })
+},
+
+'first answer is posted': function() {
+  return new Promise( (resolve) => {
+    firstAnswerIsPosted(resolve)
+  })
+},
+
+'second question is rendered': function() {
+  return new Promise( (resolve) => {
+    secondAnswerIsRendered(resolve)
+  })
+},
+
+'redo first question': function() {
+  return new Promise( (resolve) => {
+    async function runTest() {
+      const redoButton = hlib.getById('redo_Q01')
+      redoButton.click()
+      await waitSeconds(3)
+      resolve()
+    }
+    runTest()
+  })
+},
+
+'all questions are rendered again' : function () {
+  return new Promise( resolve => {
+    allQuestionsAreRendered(resolve)
+  })
+},
+
+'first question is rendered again' : function () {
+  return new Promise( resolve => {
+    firstQuestionIsDisplayed(resolve)
+  })
+},
+
+'first answer is posted again': function() {
+  return new Promise( (resolve) => {
+    firstAnswerIsPosted(resolve)
+  })
+},
+
+'second question is rendered again': function() {
+  return new Promise( (resolve) => {
+    secondAnswerIsRendered(resolve)
+  })
+},
+
+
+/*
+
+'cleanup' : function() {
+  return new Promise (resolve => {
+    async function runTest() {
+      await waitSeconds(3)
+      const opts = {
+        method: 'GET',
+        url: `https://hypothes.is/api/search?group=${hlib.getSelectedGroup()}&limit=200`,
+        headers: {
+          Authorization: 'Bearer ' + hlib.getToken(),
+          'Content-Type': 'application/json;charset=utf-8'
+        }
+      }
+      const data = await hlib.httpRequest(opts)
+      const response  = JSON.parse(data.response)
+      response.rows.forEach(row => {
+        const r = hlib.deleteAnnotation(row.id)
+        console.log(r)
+      })
+      softReload()
+      resolve()
+    }
+    runTest()
+  })
+},
+
+'second answer posted with no answer yields alert': function() {
+  return new Promise( (resolve, reject) => {
+    async function runTest() {
+      const questionKey = findFirstUnansweredQuestionKey()
+      hlib.getById('postAnswerButton').click()
+      await waitSeconds(3)
+      eq('selection required', localStorage.getItem('h_alert'))
+      resolve()
+    }
+    runTest()
+  })
+},
+
+'second answer is posted': function() {
+  return new Promise( resolve => {
+    async function runTest() {
+      let questionKey = findFirstUnansweredQuestionKey()
+      const question = hlib.getById('Q02')
+      hlib.getById(questionKey).querySelector('input').checked = true
+      appVars.SELECTION = 'The title'
+      hlib.getById('postAnswerButton').click()
+      await waitSeconds(3)
+      eq('1.02.01', questions['Q02'].answer)
+      eq('1.02.01', getRadioVal('Q02'))
+      resolve()
+    }
+    runTest()
+  })
+},
+
+'third question is rendered': function() {
+  return new Promise( (resolve) => {
+    const question = hlib.getById('Q03')
+    const title = question.querySelector('h2').innerText
+    eq('Title Representativeness*', title)
+    const subtitle = question.querySelector('h3').innerText
+    eq('How is the title unrepresentative? (select all that apply)', subtitle)
     resolve()
   })
 },
-
-'postFirstAnswer': function() {
-  return new Promise( resolve => {
-    let questionKey = findFirstUnansweredQuestionKey()
-    hlib.getById(questionKey).querySelector('input').checked = true
-    postAnswer()
-      .then( (data) => {
-        let response = JSON.parse(data).response
-        let row = JSON.parse(response)
-        assert( row.tags.indexOf('answer:1.01.01') != -1 )
-        setTimeout( () => {
-          eq(questions[questionKey].answer, '1.01.01')
-          addIdToDelete(row.id)
-          resolve()
-        }, delay)
-      })
-      .finally ( _ => {
-        log('postFirstAnswer')
-      })
-    })
-  },
-
-'postSecondAnswer': function() {
-  return new Promise( resolve => {
-    let questionKey = findFirstUnansweredQuestionKey()
-    hlib.getById(questionKey).querySelector('input').checked = true
-    appVars.SELECTION = 'The title'
-    refreshUI()
-    postAnswer()
-      .then( (data) => {
-        let response = JSON.parse(data).response
-        let row = JSON.parse(response)
-        assert( row.tags.indexOf('answer:1.02.01') != -1 )
-        setTimeout( () => {
-          eq(questions[questionKey].answer, '1.02.01')
-          addIdToDelete(row.id)
-          resolve()
-        }, delay)
-      })
-      .finally ( _ => {
-        log('postSecondAnswer')
-      })
-    })
-  },
 
 'postThirdAnswer': function() {
   return new Promise( resolve => {
@@ -421,39 +517,9 @@ tests({
   })
 },
 
-'redoQuestion': function() {
-  var _hardReload = hardReload
-  hardReload = function() {
-    localStorage.setItem('h_hardReload', 'Q09_01')
-  }
-  return new Promise( (resolve) => {
-    redoQuestion('Q09_01')
-    setTimeout( () => {
-      eq(localStorage.getItem('h_hardReload'), 'Q09_01')
-      localStorage.removeItem('h_hardReload')
-      hardReload = _hardReload
-      resolve()
-      log('redoQuestion')
-    }, delay)
-  })
-},
+*/
 
-'cleanup' : function() {
-  return new Promise (resolve => {
-    setTimeout( () => {
-      log('starting cleanup')
-      getIdsToDelete().forEach(id => {
-        deleteTestAnnotation(id)
-      })
-      initIdsToDelete()
-      log('cleanup done')
-      resolve()
-    }, delay * 3)
-  })
-},
-
-})
-
+}) 
 
 </script>
 

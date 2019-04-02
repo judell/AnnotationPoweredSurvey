@@ -1,76 +1,49 @@
 // inspired by https://github.com/joewalnes/jstinytest
 // promisified for this project
 
-const green = '#99ff99';
-
 const red =  '#ff9999';
 
 let testName
+
+const testGroup = '4mBXKB2X'
+
+localStorage.setItem('h_group', testGroup)
 
 function logError(msg) {
   document.body.innerHTML += `<div>${msg}</div`
   document.body.style.backgroundColor = red
 }
 
+function log(msg) {
+  document.body.innerHTML += `<div class="logMessage">${msg}</div>`
+}
+
 window.alert = function(str) {
   localStorage.setItem('h_alert', str)
 }
 
+async function waitSeconds(seconds) {
+  function delay(seconds) {
+    return new Promise(resolve => setTimeout(resolve, seconds * 1000))
+  }
+  await delay(seconds)
+}
+
 const TinyTest = {
 
-  run: function(tests) {
+  run: async function(tests) {
 
-    testName = 'init'
-    tests[testName]()
-    .then( () => {
-    testName = 'publicGroupIsGone'
-    tests[testName]()
-    .then( () => {
-    testName = 'postFirstAnswer'
-    tests[testName]()
-    .then ( () => {
-    testName = 'postSecondAnswer'
-    tests[testName]()
-    .then ( () => {
-    testName = 'postThirdAnswer'
-    tests[testName]()
-    .then ( () => {
-    testName = 'postFourthAnswer'
-    tests[testName]()
-    .then ( () => {
-    testName = 'postFifthAnswer'
-    tests[testName]()
-    .then ( () => {
-    testName = 'postSixthAnswer'
-    tests[testName]()
-    .then ( () => {
-    testName = 'postSeventhAnswer'
-    tests[testName]()
-    .then ( () => {
-    testName = 'postEighthAnswer'
-    tests[testName]()
-    .then ( () => {
-    testName = 'postNinthAnswerWithUnchangedSelectionPopsAlert'
-    tests[testName]()
-    .then ( () => {
-    testName = 'postNinthAnswerWithChangedSelection'
-    tests[testName]()
-    .then ( () => {
-    testName = 'endRepeat'
-    tests[testName]()
-    .then ( () => {
-    testName = 'redoQuestion'
-    tests[testName]()
-    .then ( () => {
-    testName = 'cleanup'
-    tests[testName]()
-    }) }) }) }) }) }) }) }) }) }) }) }) }) })
+  await waitSeconds(3)
 
-  setTimeout(function() { // Give document a chance to complete
-    if (window.document && document.body) {
-      document.body.style.backgroundColor = green
-    }
-  }, 0)
+  const testNames = Object.keys(tests)
+
+  for (i = 0; i < testNames.length; i++) {
+    const testName = testNames[i]
+    log(testName)
+    await tests[testName]()
+  }
+
+  log('done')
 
  },
 
