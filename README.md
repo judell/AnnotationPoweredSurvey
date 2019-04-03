@@ -4,11 +4,13 @@ This is a minimal solution for the survey specified here: http://jonudell.info/h
 
 ## Setup
 
+This app runs in two browser windows. You launch it from a page of content, using a bookmarklet. That code, running in the content page, opens another window where you answer questions. When the answer to a question requires a selection in the content page, you send the selection from the content page to the app window. 
+
 These are the ingredients:
 
 1. `gather.js`: injected into a host page, opens `index.html` in an app window, and sends selections to it
 2. `index.html`: the page where the app runs
-3. `index.js`: code that runs the app window (and uses https://github.com/judell/hlib for Hypothesis integration)
+3. `index.js`: code that runs in the app window (and uses https://github.com/judell/hlib for Hypothesis integration)
 4. `questions.js`: definitions of questions and control flow
 5. `StandaloneAnchoring.js`: from https://github.com/judell/TextQuoteAndPosition (modules, also used by the Hypothesis client, to convert a selection in a web page into the selectors needed by an annotation that targets the selection)
 
@@ -17,12 +19,10 @@ There's no server, this is purely a browser-based app. Deployment is old-school:
 > <a href="javascript:(function(){var d=document; var s=d.createElement('script');s.setAttribute('src','https://jonudell.info/hlib/StandaloneAnchoring.js');d.head.appendChild(s); s=d.createElement('script');s.setAttribute('src','https://jonudell.info/h/AnnotationPoweredSurvey/gather.js');d.head.appendChild(s);})();">Annotation-powered Survey</a>
 
 GitHub's Markdown doesn't seem to let me form a drag-installable bookmarklet here in this page, but you can:
-- Go to <a href="https://jonudell.info/h/#bookmarklets">this page</a> and drag it from there.
-- Edit the above text into the URL field of an existing bookmarklet )
+- Go to <a href="https://jonudell.info/h/#bookmarklets">this page</a> and drag it from there, or
+- Edit the above text into the URL field of an existing bookmarklet
 
 That bookmarklet refers to a deployment at https://jonudell.info/h/AnnotationPoweredSurvey, and you can use the bookmarklet to test that instance. To host your own, rewrite `questions.js`, copy items 1-4 to another place, and tweak the bookmarklet to point to the `gather.js` in that place.
-
-
 
 When activated from the bookmarklet, the app may trigger a popup blocker and require explicit consent. 
 
