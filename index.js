@@ -1,5 +1,7 @@
 // annotated spec: http://jonudell.info/h/CredCoContentAnnotation/pe_schema-credweb3.html
 
+const AnnotationSurveyTag = 'AnnotationPoweredSurvey' // must match counterpart in gather.js
+
 const appVars = {
   URL: undefined,        // url acquired on page load
   SELECTION: undefined,  // remaining vars (selector info) passed in messages from host page
@@ -14,15 +16,26 @@ let lastPostedSelection = ''
 
 const appWindowName = 'AnnotationSurvey'
 
-const AnnotationSurveyTag = 'AnnotationSurveyTest'
-
 const loadEvent = new MessageEvent('load', {})
 
-// display login fields only if needed
+async function waitSeconds(seconds) {
+  function delay(seconds) {
+    return new Promise(resolve => setTimeout(resolve, seconds * 1000))
+  }
+  await delay(seconds)
+}
 
 function groupChangeHandler() {
   hlib.setSelectedGroup()
   softReload()
+}
+
+function setUser() {
+  localStorage.setItem('h_user', document.querySelector('#usercontainer input').value)
+}
+
+function getUser() {
+  return localStorage.getItem('h_user')
 }
 
 function hasNewMessageData(event) {
@@ -106,7 +119,7 @@ function getApiBaseParamsForAnnotation() {
 function getApiBaseParamsForPageNote() {
   return {
     group: hlib.getSelectedGroup(),
-    username: hlib.getSettings().user,
+    username: getUser(),
     uri: appVars.URL,
     tags: [AnnotationSurveyTag],
   }
@@ -119,8 +132,11 @@ function refreshUI() {
   paramsDiv.innerHTML = `
      <p><b>Article</b>: <a href="${appVars.URL}">${appVars.URL}</a></p>
      <p>
-       <b>Selection</b>: 
-       "<span class="AnnotationSurveySelection">${appVars.SELECTION ? appVars.SELECTION : ""}</span>" 
+       <div><b>Selection</b>: 
+         "<span class="AnnotationSurveySelection">${appVars.SELECTION ? appVars.SELECTION : ""}</span>"
+       </div>
+       <div class="clearSelection" onclick="clearSelection()"
+         style="display:${appVars.SELECTION ? 'block' : 'none'}">clear selection</div>
      </p>`
 
   showOnlyAnsweredQuestions()
@@ -562,9 +578,6 @@ function postAnswer() {
   })
 }
 
-function hardReload() {
-  location.href = location.href
-}
 
 async function redoQuestion(key) {
   console.log(`redoQuestion: ${key}`)
@@ -698,9 +711,11 @@ function setHighlightVal(questionKey, val) {
 }
 
 async function boot() {
+  const userContainer = hlib.getById('userContainer')
   if (! hlib.getToken()) {
     hlib.createApiTokenInputForm(hlib.getById('tokenContainer'))
-    hlib.createUserInputForm(hlib.getById('userContainer'))
+    hlib.createFacetInputForm(userContainer, 'Hypothesis username matching API token')
+    userContainer.querySelector('input').setAttribute('onchange', 'setUser()')
   }
   await hlib.createGroupInputForm(hlib.getById('groupContainer'))
   let groupsList = hlib.getById('groupsList')

@@ -289,7 +289,7 @@ tests({
   })
 },
 
-'second answer posted with no answer yields alert': function() {
+'second answer posted with no answer provokes alert': function() {
   return new Promise( (resolve, reject) => {
     async function runTest() {
       const questionKey = findFirstUnansweredQuestionKey()
@@ -416,7 +416,7 @@ tests({
   })
 },
 
-'ninth answer posted with unchanged selection pops alert': function() {
+'ninth answer posted with unchanged selection provokes alert': function() {
   return new Promise( resolve => {
     async function runTest() {
       localStorage.setItem('h_alert', '')
