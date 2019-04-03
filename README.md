@@ -16,7 +16,7 @@ These are the ingredients:
 
 There's no server, this is purely a browser-based app. Deployment is old-school: Upload items 1-4 to some web-facing subdirectory, then create a bookmarklet like so:
 
-> <a href="javascript:(function(){var d=document; var s=d.createElement('script');s.setAttribute('src','https://jonudell.info/hlib/StandaloneAnchoring.js');d.head.appendChild(s); s=d.createElement('script');s.setAttribute('src','https://jonudell.info/h/AnnotationPoweredSurvey/gather.js');d.head.appendChild(s);})();">Annotation-powered Survey</a>
+```<a href="javascript:(function(){var d=document; var s=d.createElement('script');s.setAttribute('src','https://jonudell.info/hlib/StandaloneAnchoring.js');d.head.appendChild(s); s=d.createElement('script');s.setAttribute('src','https://jonudell.info/h/AnnotationPoweredSurvey/gather.js');d.head.appendChild(s);})();">Annotation-powered Survey</a>```
 
 GitHub's Markdown doesn't seem to let me form a drag-installable bookmarklet here in this page, but you can:
 - Go to <a href="https://jonudell.info/h/#bookmarklets">this page</a> and drag it from there, or
