@@ -1,31 +1,32 @@
 # Annotation-powered Survey
 
-This is a minimal solution for the survey specified here: http://jonudell.info/h/CredCoContentAnnotation/pe_schema-credweb3.html. Initial demo http://jonudell.info/h/credco-01.mp4.
+This is a minimal solution for the survey specified here: http://jonudell.info/h/CredCoContentAnnotation/pe_schema-credweb3.html. Initial demo http://jonudell.info/h/credco-01.mp4. Explanation: https://web.hypothes.is/blog/annotation-powered-questionnaires/.
 
-## Installation
+## Setup
 
-The survey runs from a bookmarklet that refers to:
+These are the ingredients:
 
-- An `index.html` page (where the app runs)
-- `gather.js`, injected into the host page, that opens `index.html` in an app window, and sends selections to it
-- `index.js` that runs the app window
-- `questions.js` that defines the questions
-- `StandaloneAnchoring.js`, from https://github.com/judell/TextQuoteAndPosition (modules, also used by the Hypothesis client, to convert a selection in a web page into the selectors needed by an annotation that targets the selection)
-- `hlib.bundle.js`, from https://github.com/judell/hlib (convenience wrappers around the Hypothesis API)
+1. `gather.js`: injected into a host page, opens `index.html` in an app window, and sends selections to it
+2. `index.html`: the page where the app runs
+3. `index.js`: code that runs the app window (and uses https://github.com/judell/hlib for Hypothesis integration)
+4. `questions.js`: definitions of questions and control flow
+5. `StandaloneAnchoring.js`: from https://github.com/judell/TextQuoteAndPosition (modules, also used by the Hypothesis client, to convert a selection in a web page into the selectors needed by an annotation that targets the selection)
 
-My current bookmarklet's text is:
+There's no server, this is purely a browser-based app. Deployment is old-school: Upload items 1-4 to some web-facing subdirectory, then create a bookmarklet like so:
 
-> javascript:(function(){var d=document; var s=d.createElement('script');s.setAttribute('src','https://jonudell.info/hlib/StandaloneAnchoring.js');d.head.appendChild(s); s=d.createElement('script');s.setAttribute('src','https://jonudell.info/hlib/hlib.bundle.js');d.head.appendChild(s); s=d.createElement('script');s.setAttribute('src','https://jonudell.info/h/CredCoContentAnnotation/gather.js');d.head.appendChild(s);})();
+> <a href="javascript:(function(){var d=document; var s=d.createElement('script');s.setAttribute('src','https://jonudell.info/hlib/StandaloneAnchoring.js');d.head.appendChild(s); s=d.createElement('script');s.setAttribute('src','https://jonudell.info/h/AnnotationPoweredSurvey/gather.js');d.head.appendChild(s);})();">Annotation-powered Survey</a>
 
 GitHub's Markdown doesn't seem to let me form a drag-installable bookmarklet here in this page, but you can:
+- Go to <a href="https://jonudell.info/h/#bookmarklets">this page</a> and drag it from there.
+- Edit the above text into the URL field of an existing bookmarklet )
 
-1. Go to <a href="https://jonudell.info/h/#bookmarklets">this page</a> and drag it from there.
+That bookmarklet refers to a deployment at https://jonudell.info/h/AnnotationPoweredSurvey, and you can use the bookmarklet to test that instance. To host your own, rewrite `questions.js`, copy items 1-4 to another place, and tweak the bookmarklet to point to the `gather.js` in that place.
 
-2. Edit the above text into the URL field of an existing bookmarklet
+
 
 When activated from the bookmarklet, the app may trigger a popup blocker and require explicit consent. 
 
-If the host page enforces Content Security Policy, the bookmarklet won't work. That shouldn't be a problem for the sites we are targeting. Should it become a problem, the mechanism can be repackaged as a browser extension. 
+If the host page enforces Content Security Policy, the bookmarklet won't work. Should that become a problem, the mechanism can be repackaged as a browser extension. 
 
 ## Question Types
 
