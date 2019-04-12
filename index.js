@@ -712,11 +712,9 @@ function setHighlightVal(questionKey, val) {
 
 async function boot() {
   const userContainer = hlib.getById('userContainer')
-  if (! hlib.getToken()) {
-    hlib.createApiTokenInputForm(hlib.getById('tokenContainer'))
-    hlib.createFacetInputForm(userContainer, 'Hypothesis username matching API token')
-    userContainer.querySelector('input').setAttribute('onchange', 'setUser()')
-  }
+  hlib.createApiTokenInputForm(hlib.getById('tokenContainer'))
+  hlib.createFacetInputForm(userContainer, 'Hypothesis username matching API token')
+  userContainer.querySelector('input').setAttribute('onchange', 'setUser()')
   await hlib.createGroupInputForm(hlib.getById('groupContainer'))
   let groupsList = hlib.getById('groupsList')
   groupsList.querySelectorAll('option')[0].remove() // suppress Public
