@@ -87,7 +87,7 @@ function gather() {
     activator.style['z-index'] = 999999999
     activator.innerHTML = '<button onclick="gather()">send selection</button>'
     document.body.insertBefore(activator, document.body.firstChild)
-    let opener = "width=700, height=900, toolbar=yes, top=-1000"
+    let opener = `width=700,height=900,top=${window.screenTop},left=${window.screenLeft + window.innerWidth}`
     AnnotationSurveyWindow = window.open( `https://jonudell.info/h/AnnotationPoweredSurvey/index.html?url=${location.href}`, '_annotationSurvey', opener)
   } else {
     AnnotationSurveyWindow.postMessage(params, '*')  // talk to the app
