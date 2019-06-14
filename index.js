@@ -18,11 +18,8 @@ const appWindowName = 'AnnotationSurvey'
 
 const loadEvent = new MessageEvent('load', {})
 
-async function waitSeconds(seconds) {
-  function delay(seconds) {
-    return new Promise(resolve => setTimeout(resolve, seconds * 1000))
-  }
-  await delay(seconds)
+async function delay(seconds) {
+  return new Promise(resolve => setTimeout(resolve, seconds * 1000))
 }
 
 function groupChangeHandler() {

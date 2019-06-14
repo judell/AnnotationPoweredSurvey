@@ -1,3 +1,15 @@
+<!--
+To run the tests:
+
+1. python server.py
+
+2. visit http://localhost:8001/
+
+3. Enter your Hypothesis username and token
+
+4. visit http://localhost:8001/test.html?url=https://localhost:8001/test.html
+
+-->
 <html>
 <head>
 <title>AnnotationSurvey Content Annotation</title>
@@ -129,11 +141,8 @@ function clearAnswers() {
   })
 }
 
-async function waitSeconds(seconds) {
-  function delay(seconds) {
-    return new Promise(resolve => setTimeout(resolve, seconds * 1000))
-  }
-  await delay(seconds)
+async function delay(seconds) {
+  return new Promise(resolve => setTimeout(resolve, seconds * 1000))
 }
 
 function log(msg) {
@@ -189,7 +198,7 @@ async function firstAnswerIsPosted(resolve) {
   const questionKey = findFirstUnansweredQuestionKey()
   hlib.getById(questionKey).querySelector('input').checked = true
   hlib.getById('postAnswerButton').click()
-  await waitSeconds(3)
+  await delay(3)
   eq('1.01.01', questions['Q01'].answer)
   eq('1.01.01', getRadioVal('Q01'))
   resolve()
@@ -218,7 +227,7 @@ tests({
  'public group is gone and test group is selected' : function () {
   return new Promise( resolve => {
     async function runTest() {
-      await waitSeconds(2)
+      await delay(2)
       const options = Array.from(hlib.getById('groupsList').options)
       options.forEach (option => {
         if (option.value === testGroup) {
@@ -263,7 +272,7 @@ tests({
     async function runTest() {
       const redoButton = hlib.getById('redo_Q01')
       redoButton.click()
-      await waitSeconds(3)
+      await delay(3)
       resolve()
     }
     runTest()
@@ -299,7 +308,7 @@ tests({
     async function runTest() {
       const questionKey = findFirstUnansweredQuestionKey()
       hlib.getById('postAnswerButton').click()
-      await waitSeconds(3)
+      await delay(3)
       eq('selection required', localStorage.getItem('h_alert'))
       resolve()
     }
@@ -315,7 +324,7 @@ tests({
       hlib.getById(questionKey).querySelector('input').checked = true
       appVars.SELECTION = 'The title'
       hlib.getById('postAnswerButton').click()
-      await waitSeconds(3)
+      await delay(3)
       eq('1.02.01', questions['Q02'].answer)
       eq('1.02.01', getRadioVal('Q02'))
       resolve()
@@ -343,7 +352,7 @@ tests({
       hlib.getById(questionKey).querySelectorAll('input')[6].checked = true
       appVars.SELECTION = 'The title'
       hlib.getById('postAnswerButton').click()
-      await waitSeconds(3)
+      await delay(3)
       eq('1.03.01, 1.03.07', questions[questionKey].answer)
       resolve()
     }
@@ -357,7 +366,7 @@ tests({
       const questionKey = findFirstUnansweredQuestionKey()
       setTextAreaVal(questionKey, 'A very silly title')
       hlib.getById('postAnswerButton').click()
-      await waitSeconds(3)
+      await delay(3)
       eq('A very silly title', questions[questionKey].answer)
       resolve()
     }
@@ -371,7 +380,7 @@ tests({
       const questionKey = findFirstUnansweredQuestionKey()
       hlib.getById(questionKey).querySelectorAll('input')[3].checked = true
       hlib.getById('postAnswerButton').click()
-      await waitSeconds(3)
+      await delay(3)
       eq('1.04.04', questions[questionKey].answer)
       resolve()
     }
@@ -385,7 +394,7 @@ tests({
       const questionKey = findFirstUnansweredQuestionKey()
       hlib.getById(questionKey).querySelectorAll('input')[1].checked = true
       hlib.getById('postAnswerButton').click()
-      await waitSeconds(3)
+      await delay(3)
       eq('1.07.02', questions[questionKey].answer)
       resolve()
     }
@@ -399,7 +408,7 @@ tests({
       const questionKey = findFirstUnansweredQuestionKey()
       hlib.getById(questionKey).querySelectorAll('input')[0].checked = true
       hlib.getById('postAnswerButton').click()
-      await waitSeconds(3)
+      await delay(3)
       eq('1.08a.01', questions[questionKey].answer)
       resolve()
     }
@@ -413,7 +422,7 @@ tests({
       let questionKey = findFirstUnansweredQuestionKey()
       hlib.getById(questionKey).querySelectorAll('input')[0].checked = true
       hlib.getById('postAnswerButton').click()
-      await waitSeconds(3)
+      await delay(3)
       eq('1.08.01', questions[questionKey].answer)
       resolve()
     }
@@ -427,7 +436,7 @@ tests({
       localStorage.setItem('h_alert', '')
       const questionKey = findFirstUnansweredQuestionKey()
       hlib.getById('postAnswerButton').click()
-      await waitSeconds(3)
+      await delay(3)
       eq('new selection required', localStorage.getItem('h_alert'))
       resolve()
     }
@@ -441,7 +450,7 @@ tests({
       const questionKey = findFirstUnansweredQuestionKey()
       appVars.SELECTION = 'Expert #1'
       hlib.getById('postAnswerButton').click()
-      await waitSeconds(3)
+      await delay(3)
       assert(questions[questionKey].answer.startsWith('https://hypothes.is/a/'))
       assert(questions[questionKey].answerQuote.indexOf(`<span title="exact quote" 
         class="quoteExact">Expert #1</span>` > 0))
@@ -467,7 +476,7 @@ tests({
   return new Promise( resolve => {
     async function runTest() {
       hlib.getById('endRepeatButton').click()
-      await waitSeconds(3)
+      await delay(3)
       eq('Q13', findFirstUnansweredQuestionKey())
       resolve()
     }

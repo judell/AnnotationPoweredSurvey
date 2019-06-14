@@ -22,18 +22,15 @@ window.alert = function(str) {
   localStorage.setItem('h_alert', str)
 }
 
-async function waitSeconds(seconds) {
-  function delay(seconds) {
-    return new Promise(resolve => setTimeout(resolve, seconds * 1000))
-  }
-  await delay(seconds)
+async function delay(seconds) {
+  return new Promise(resolve => setTimeout(resolve, seconds * 1000))
 }
 
 const TinyTest = {
 
   run: async function(tests) {
 
-  await waitSeconds(3)
+  await delay(3)
 
   const testNames = Object.keys(tests)
 
