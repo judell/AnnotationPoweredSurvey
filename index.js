@@ -583,7 +583,7 @@ async function redoQuestion(key) {
   delete questions[key].answer
   delete questions[key].answerId
   hlib.getById('questions').innerHTML = ''
-  await waitSeconds(1)
+  await delay(1)
   renderQuestions()
   softReload()
 }
