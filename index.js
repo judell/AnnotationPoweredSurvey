@@ -591,12 +591,6 @@ async function redoQuestion(key) {
   softReload()
 }
 
-function clearViewer() {
-  hlib.getById('viewer').innerHTML = ''
-  hlib.getById('userContainer').innerHTML = ''
-  hlib.getById('tokenContainer').innerHTML = ''
-}
-
 function clearSelection() {
   appVars.SELECTION = ''
   refreshUI()
@@ -714,7 +708,9 @@ async function boot() {
   const userContainer = hlib.getById('userContainer')
   hlib.createApiTokenInputForm(hlib.getById('tokenContainer'))
   hlib.createFacetInputForm(userContainer, 'Hypothesis username matching API token')
-  userContainer.querySelector('input').setAttribute('onchange', 'setUser()')
+  userInput = userContainer.querySelector('input')
+  userInput.setAttribute('onchange', 'setUser()')
+  userInput.value = getUser()
   await hlib.createGroupInputForm(hlib.getById('groupContainer'))
   let groupsList = hlib.getById('groupsList')
   groupsList.querySelectorAll('option')[0].remove() // suppress Public
