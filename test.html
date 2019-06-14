@@ -140,19 +140,13 @@ function log(msg) {
 async function cleanup() {
   return new Promise(resolve => {
     async function worker() {
-      const opts = {
-        method: 'GET',
+      const data = await hlib.search({
         url: `https://hypothes.is/api/search?group=${hlib.getSelectedGroup()}&limit=200`,
-        headers: {
-          Authorization: 'Bearer ' + hlib.getToken(),
-          'Content-Type': 'application/json;charset=utf-8'
-        }
-      }
-      const data = await hlib.httpRequest(opts)
-      const response = JSON.parse(data.response)
-      response.rows.forEach(row => {
-        const r = hlib.deleteAnnotation(row.id)
-        console.log(r)
+      })
+      const rows = data[0].concat(data[1])
+      rows.forEach(row => {
+        hlib.deleteAnnotation(row.id)
+          .then(r => { console.log(r) })
       })
       resolve()
     }
