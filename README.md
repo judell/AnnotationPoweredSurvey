@@ -28,6 +28,18 @@ When activated from the bookmarklet, the app may trigger a popup blocker and req
 
 If the host page enforces Content Security Policy, the bookmarklet won't work. Should that become a problem, the mechanism can be repackaged as a browser extension. 
 
+## Tests
+
+To run the tests:
+
+1. python server.py
+
+2. visit http://localhost:8001/
+
+3. Enter your Hypothesis username and token
+
+4. visit http://localhost:8001/test.html?url=https://localhost:8001/test.html
+
 ## Question Types
 
 ### Radio
