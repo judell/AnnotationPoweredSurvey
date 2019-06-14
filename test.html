@@ -2,7 +2,7 @@
 <head>
 <title>AnnotationSurvey Content Annotation</title>
 <link rel="stylesheet" href="https://jonudell.info/hlib/hlib.css" />
-<script src="http://10.0.0.9:8000/hlib2.bundle.js"></script>
+<script src="https://jonudell.info/hlib/hlib2.bundle.js"></script>
 <script src="https://jonudell.info/hlib/showdown.js"></script>
 <script src="questions.js"></script>
 <script async src="index.js"></script>
@@ -141,20 +141,25 @@ function log(msg) {
 }
 
 async function cleanup() {
-  await waitSeconds(3)
-  const opts = {
-    method: 'GET',
-    url: `https://hypothes.is/api/search?group=${hlib.getSelectedGroup()}&limit=200`,
-    headers: {
-      Authorization: 'Bearer ' + hlib.getToken(),
-      'Content-Type': 'application/json;charset=utf-8'
+  return new Promise(resolve => {
+    async function worker() {
+      const opts = {
+        method: 'GET',
+        url: `https://hypothes.is/api/search?group=${hlib.getSelectedGroup()}&limit=200`,
+        headers: {
+          Authorization: 'Bearer ' + hlib.getToken(),
+          'Content-Type': 'application/json;charset=utf-8'
+        }
+      }
+      const data = await hlib.httpRequest(opts)
+      const response = JSON.parse(data.response)
+      response.rows.forEach(row => {
+        const r = hlib.deleteAnnotation(row.id)
+        console.log(r)
+      })
+      resolve()
     }
-  }
-  const data = await hlib.httpRequest(opts)
-  const response  = JSON.parse(data.response)
-  response.rows.forEach(row => {
-    const r = hlib.deleteAnnotation(row.id)
-    console.log(r)
+    worker()
   })
 }
 
@@ -472,11 +477,14 @@ tests({
 
 'cleanup' : function() {
   return new Promise (resolve => {
-    cleanup()
-    softReload()
-    resolve()
-  })
-},
+    async function worker() {
+      await cleanup()
+      softReload()
+      resolve()
+    }
+    worker()
+    })
+  },
 
 }) 
 
