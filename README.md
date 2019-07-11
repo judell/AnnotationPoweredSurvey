@@ -1,6 +1,6 @@
 # Annotation-powered Survey
 
-This is a minimal solution for the survey specified here: http://jonudell.info/h/CredCoContentAnnotation/pe_schema-credweb3.html. Initial demo http://jonudell.info/h/credco-01.mp4. Explanation: https://web.hypothes.is/blog/annotation-powered-questionnaires/.
+This is a minimal solution for the survey specified here: http://jonudell.info/h/CredCoContentAnnotation/pe_schema-credweb3.html. Initial demo http://jonudell.info/h/credco-01.mp4. Explanation: https://web.hypothes.is/blog/annotation-powered-questionnaires/. More <a href="https://jonudell.info/h/tools.html">Hypothesis tools</a>.
 
 ## Setup
 
